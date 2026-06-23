@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "repoPath": "D:\\github\\AskRealm",
+  "tier": "meta",
+  "status": "completed",
+  "phase": "done",
+  "processed": 1,
+  "total": 1,
+  "counts": {
+    "sessions": 0,
+    "files": 0,
+    "commits": 0,
+    "entries": 0,
+    "records": 0
+  },
+  "lastError": null,
+  "resumable": false,
+  "cancelRequested": false,
+  "startedAt": "2026-06-23T04:01:31.193098700+00:00",
+  "updatedAt": "2026-06-23T04:01:31.202685+00:00",
+  "completedAt": "2026-06-23T04:01:31.202682200+00:00"
+}

@@ -21,7 +21,9 @@ class _CharacterSelectPageState extends State<CharacterSelectPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _isGroupMode = ModalRoute.of(context)?.settings.arguments as bool? ?? false;
+    _isGroupMode = ModalRoute.of(context)?.settings.arguments is bool
+        ? (ModalRoute.of(context)!.settings.arguments as bool)
+        : false;
   }
 
   void _onCharacterTap(Character character) {

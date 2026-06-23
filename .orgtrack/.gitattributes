@@ -1,0 +1,5 @@
+metadata/records/**/*.json merge=union
+metadata/derived/files/**/*.jsonl merge=union
+metadata/manifest.json merge=union
+metadata/index.json merge=union
+histories/** -merge

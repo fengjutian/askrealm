@@ -1,0 +1,4 @@
+histories/
+metadata/derived/objects/
+metadata/derived/packs/
+*.trajectory.json

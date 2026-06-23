@@ -87,7 +87,7 @@ class ChatBubble extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(left: 4, bottom: 4),
                     child: Text(
-                      '${message.characterEmoji ?? ''} ${message.characterName}',
+                      message.characterName!,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: characterColor ?? Colors.grey[400],
                         fontWeight: FontWeight.w600,
@@ -133,33 +133,57 @@ class ChatBubble extends StatelessWidget {
   }
 
   Widget _buildLoadingIndicator() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _dot(),
-        const SizedBox(width: 4),
-        _dot(),
-        const SizedBox(width: 4),
-        _dot(),
-      ],
-    );
+    return _LoadingDots();
+  }
+}
+
+/// 循环闪烁的加载点动画组件
+class _LoadingDots extends StatefulWidget {
+  @override
+  State<_LoadingDots> createState() => _LoadingDotsState();
+}
+
+class _LoadingDotsState extends State<_LoadingDots>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
   }
 
-  Widget _dot() {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.3, end: 1.0),
-      duration: const Duration(milliseconds: 600),
-      builder: (context, value, child) {
-        return Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white.withOpacity(value),
-          ),
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(3, (i) {
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final phase = (_controller.value * 3 + i) % 1.0;
+            final opacity = 0.3 + 0.7 * (phase < 0.5 ? phase * 2 : (1 - phase) * 2);
+            return Container(
+              width: 8,
+              height: 8,
+              margin: const EdgeInsets.only(right: 4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(opacity),
+              ),
+            );
+          },
         );
-      },
-      onEnd: () {},
+      }),
     );
   }
 }

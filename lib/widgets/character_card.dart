@@ -87,7 +87,11 @@ class CharacterCard extends StatelessWidget {
                   height: 24,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isSelected ? character.labelColor : Colors.white24,
+                    color: isSelected ? character.labelColor : Colors.transparent,
+                    border: Border.all(
+                      color: isSelected ? character.labelColor : Colors.white38,
+                      width: 2,
+                    ),
                   ),
                   child: isSelected
                       ? const Icon(Icons.check, size: 16, color: Colors.white)

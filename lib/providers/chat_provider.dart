@@ -15,6 +15,9 @@ class ChatProvider extends ChangeNotifier {
   // 加载中的角色 id 列表
   final Set<String> _loadingCharacterIds = {};
 
+  // 清空计数器 — 每次 clear 自增，用于检测请求是否已过时
+  int _clearCount = 0;
+
   // --- Getters ---
   List<Message> get messages => List.unmodifiable(_messages);
   ChatMode get mode => _mode;
@@ -23,9 +26,11 @@ class ChatProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   Set<String> get loadingCharacterIds => _loadingCharacterIds;
 
-  /// 生成唯一 ID
-  static String _genId() =>
-      'msg_${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecondsSinceEpoch}';
+  /// 生成唯一 ID（原子操作）
+  static String _genId() {
+    final now = DateTime.now();
+    return 'msg_${now.millisecondsSinceEpoch}_${now.microsecondsSinceEpoch}';
+  }
 
   /// 是否有对话内容
   bool get hasMessages => _messages.isNotEmpty;
@@ -36,12 +41,23 @@ class ChatProvider extends ChangeNotifier {
     return _roomCharacters.isNotEmpty && !_isLoading;
   }
 
+  /// 构造历史消息（用于 API 请求）
+  List<Message> _buildHistory() {
+    return _messages
+        .where((m) => !m.isLoading && (m.role == 'user' || m.role == 'assistant'))
+        .toList();
+  }
+
+  /// 检查请求是否已因清空而过时
+  bool _isStale(int clearCountAtStart) => _clearCount != clearCountAtStart;
+
   // --- 初始化单人模式 ---
   void startSingleChat(Character character) {
     _mode = ChatMode.single;
     _currentCharacter = character;
     _roomCharacters = [];
     _messages.clear();
+    _clearCount++;
     notifyListeners();
   }
 
@@ -51,6 +67,7 @@ class ChatProvider extends ChangeNotifier {
     _roomCharacters = characters;
     _currentCharacter = null;
     _messages.clear();
+    _clearCount++;
     notifyListeners();
   }
 
@@ -59,6 +76,7 @@ class ChatProvider extends ChangeNotifier {
     _messages.clear();
     _isLoading = false;
     _loadingCharacterIds.clear();
+    _clearCount++;
     notifyListeners();
   }
 
@@ -76,16 +94,17 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
 
     if (_mode == ChatMode.single) {
-      await _singleReply(text);
+      await _singleReply();
     } else {
-      await _groupReplies(text);
+      await _groupReplies();
     }
   }
 
   // --- 单人回复 ---
-  Future<void> _singleReply(String text) async {
+  Future<void> _singleReply() async {
     if (_currentCharacter == null) return;
 
+    final clearAtStart = _clearCount;
     _isLoading = true;
     notifyListeners();
 
@@ -95,9 +114,11 @@ class ChatProvider extends ChangeNotifier {
         apiKey: StorageService.apiKey ?? '',
         model: StorageService.model,
         systemPrompt: _currentCharacter!.systemPrompt,
-        history: _messages.where((m) => m.role == 'user' || m.role == 'assistant').toList(),
+        history: _buildHistory(),
         userMessage: '',
       );
+
+      if (_isStale(clearAtStart)) return;
 
       _messages.add(Message(
         id: _genId(),
@@ -109,13 +130,15 @@ class ChatProvider extends ChangeNotifier {
         timestamp: DateTime.now(),
       ));
     } catch (e) {
+      if (_isStale(clearAtStart)) return;
+
       _messages.add(Message(
         id: _genId(),
         role: 'assistant',
         characterId: _currentCharacter!.id,
         characterName: _currentCharacter!.name,
         characterEmoji: _currentCharacter!.emoji,
-        content: '【出错了】$e',
+        content: '【出错了】${_sanitizeError(e)}',
         timestamp: DateTime.now(),
       ));
     }
@@ -125,29 +148,27 @@ class ChatProvider extends ChangeNotifier {
   }
 
   // --- 多人依次回复 ---
-  Future<void> _groupReplies(String text) async {
+  Future<void> _groupReplies() async {
+    final clearAtStart = _clearCount;
     _isLoading = true;
 
-    // 依次为每个角色获取回复
     for (final character in _roomCharacters) {
+      if (_isStale(clearAtStart)) break;
+
       _loadingCharacterIds.add(character.id);
       notifyListeners();
 
       try {
-        // 构建历史消息（只包含 content 角色信息，不包含 loading 消息）
-        final history = _messages
-            .where((m) => !m.isLoading && (m.role == 'user' || m.role == 'assistant'))
-            .toList();
-
         final reply = await ApiService.chat(
           baseUrl: StorageService.baseUrl,
           apiKey: StorageService.apiKey ?? '',
           model: StorageService.model,
           systemPrompt: character.systemPrompt,
-          // 用户消息已在 history 中，不再重复传入
-          history: history,
+          history: _buildHistory(),
           userMessage: '',
         );
+
+        if (_isStale(clearAtStart)) break;
 
         _messages.add(Message(
           id: _genId(),
@@ -159,13 +180,15 @@ class ChatProvider extends ChangeNotifier {
           timestamp: DateTime.now(),
         ));
       } catch (e) {
+        if (_isStale(clearAtStart)) break;
+
         _messages.add(Message(
           id: _genId(),
           role: 'assistant',
           characterId: character.id,
           characterName: character.name,
           characterEmoji: character.emoji,
-          content: '【出错了】$e',
+          content: '【出错了】${_sanitizeError(e)}',
           timestamp: DateTime.now(),
         ));
       }
@@ -176,5 +199,26 @@ class ChatProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  /// 对用户友好地显示错误，避免泄露 API Key 等敏感信息
+  String _sanitizeError(Object e) {
+    final msg = e.toString();
+    if (msg.contains('401') || msg.contains('Unauthorized')) {
+      return 'API Key 无效，请在设置页检查';
+    }
+    if (msg.contains('timeout') || msg.contains('Timeout')) {
+      return '请求超时，请检查网络或 API 地址';
+    }
+    if (msg.contains('Connection refused') ||
+        msg.contains('No address') ||
+        msg.contains('Failed host lookup')) {
+      return '无法连接服务器，请检查 API 地址';
+    }
+    if (msg.contains('402') || msg.contains('Insufficient') || msg.contains('quota') || msg.contains('balance')) {
+      return '账户余额不足，请充值';
+    }
+    // 一般错误只截取前 80 个字符
+    return msg.length > 80 ? '${msg.substring(0, 80)}…' : msg;
   }
 }

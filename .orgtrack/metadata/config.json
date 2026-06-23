@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "defaultTier": "meta",
+  "trackedTiers": [
+    "meta"
+  ],
+  "redactionPolicy": {
+    "includeRawPrompts": false,
+    "includeToolArgs": false,
+    "includeToolResults": false,
+    "includeFileContents": false
+  },
+  "trajectoryGitignoreRecommended": true,
+  "derivedIndexesRebuildable": true
+}
