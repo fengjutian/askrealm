@@ -5,11 +5,13 @@ import '../models/message.dart';
 class ChatBubble extends StatelessWidget {
   final Message message;
   final bool isUser;
+  final Color? characterColor; // 角色标签色
 
   const ChatBubble({
     super.key,
     required this.message,
     required this.isUser,
+    this.characterColor,
   });
 
   @override
@@ -85,10 +87,10 @@ class ChatBubble extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(left: 4, bottom: 4),
                     child: Text(
-                      message.characterName!,
+                      '${message.characterEmoji ?? ''} ${message.characterName}',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[400],
-                        fontWeight: FontWeight.w500,
+                        color: characterColor ?? Colors.grey[400],
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -106,9 +108,15 @@ class ChatBubble extends StatelessWidget {
                       bottomLeft: Radius.circular(20),
                       bottomRight: Radius.circular(20),
                     ),
+                    border: Border(
+                      left: BorderSide(
+                        color: characterColor?.withOpacity(0.6) ?? Colors.white24,
+                        width: 3,
+                      ),
+                    ),
                   ),
                   child: message.isLoading
-                      ? _buildLoadingIndicator(theme)
+                      ? _buildLoadingIndicator()
                       : Text(
                           message.content,
                           style: theme.textTheme.bodyMedium?.copyWith(
@@ -124,21 +132,20 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
-  /// 加载中动画
-  Widget _buildLoadingIndicator(ThemeData theme) {
+  Widget _buildLoadingIndicator() {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _dot(theme, 0),
+        _dot(),
         const SizedBox(width: 4),
-        _dot(theme, 200),
+        _dot(),
         const SizedBox(width: 4),
-        _dot(theme, 400),
+        _dot(),
       ],
     );
   }
 
-  Widget _dot(ThemeData theme, int delayMs) {
+  Widget _dot() {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.3, end: 1.0),
       duration: const Duration(milliseconds: 600),

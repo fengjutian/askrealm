@@ -1,10 +1,81 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
 
 /// 设置页 — API Key / Base URL / Model 配置
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  late TextEditingController _baseUrlController;
+  late TextEditingController _apiKeyController;
+  late TextEditingController _modelController;
+  bool _isTesting = false;
+  String? _testResult;
+
+  @override
+  void initState() {
+    super.initState();
+    final settings = context.read<SettingsProvider>();
+    _baseUrlController = TextEditingController(text: settings.baseUrl);
+    _apiKeyController = TextEditingController(text: settings.apiKey);
+    _modelController = TextEditingController(text: settings.model);
+  }
+
+  @override
+  void dispose() {
+    _baseUrlController.dispose();
+    _apiKeyController.dispose();
+    _modelController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _testConnection() async {
+    setState(() {
+      _isTesting = true;
+      _testResult = null;
+    });
+
+    final baseUrl = _baseUrlController.text.trim();
+    final apiKey = _apiKeyController.text.trim();
+    final model = _modelController.text.trim();
+
+    try {
+      final url = Uri.parse('${baseUrl.trimRight('/')}/v1/chat/completions');
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'Authorization': 'Bearer $apiKey',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({
+              'model': model,
+              'messages': [
+                {'role': 'user', 'content': '你好，回复一个字就行。'}
+              ],
+              'max_tokens': 10,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        setState(() => _testResult = '✅ 连接成功！API Key 有效');
+      } else {
+        setState(() => _testResult = '❌ 请求失败 (${response.statusCode})');
+      }
+    } catch (e) {
+      setState(() => _testResult = '❌ 连接失败：$e');
+    }
+
+    setState(() => _isTesting = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,13 +83,6 @@ class SettingsPage extends StatelessWidget {
 
     return Consumer<SettingsProvider>(
       builder: (context, settings, _) {
-        final baseUrlController =
-            TextEditingController(text: settings.baseUrl);
-        final apiKeyController =
-            TextEditingController(text: settings.apiKey);
-        final modelController =
-            TextEditingController(text: settings.model);
-
         return Scaffold(
           appBar: AppBar(
             title: const Text('API 配置'),
@@ -70,7 +134,7 @@ class SettingsPage extends StatelessWidget {
               _SectionLabel(label: 'API 接口地址'),
               const SizedBox(height: 8),
               _ConfigField(
-                controller: baseUrlController,
+                controller: _baseUrlController,
                 hintText: '如 https://api.deepseek.com',
                 onChanged: settings.setBaseUrl,
               ),
@@ -80,7 +144,7 @@ class SettingsPage extends StatelessWidget {
               _SectionLabel(label: 'API Key'),
               const SizedBox(height: 8),
               _ConfigField(
-                controller: apiKeyController,
+                controller: _apiKeyController,
                 hintText: 'sk-xxxxxxxxxxxxxxxx',
                 obscureText: true,
                 onChanged: settings.setApiKey,
@@ -91,11 +155,55 @@ class SettingsPage extends StatelessWidget {
               _SectionLabel(label: '模型名称'),
               const SizedBox(height: 8),
               _ConfigField(
-                controller: modelController,
+                controller: _modelController,
                 hintText: '如 deepseek-chat / gpt-4o-mini',
                 onChanged: settings.setModel,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
+
+              // 测试连接按钮
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: _isTesting ? null : _testConnection,
+                  icon: _isTesting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.wifi_find),
+                  label: Text(_isTesting ? '测试中…' : '测试连接'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E88E5),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                ),
+              ),
+
+              // 测试结果
+              if (_testResult != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Text(
+                    _testResult!,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: _testResult!.startsWith('✅')
+                          ? Colors.green[300]
+                          : Colors.red[300],
+                    ),
+                  ),
+                ),
+
+              const SizedBox(height: 24),
 
               // 常见模型推荐
               Container(

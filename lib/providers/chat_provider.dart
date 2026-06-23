@@ -144,8 +144,9 @@ class ChatProvider extends ChangeNotifier {
           apiKey: StorageService.apiKey ?? '',
           model: StorageService.model,
           systemPrompt: character.systemPrompt,
+          // 用户消息已在 history 中，不再重复传入
           history: history,
-          userMessage: text,
+          userMessage: '',
         );
 
         _messages.add(Message(

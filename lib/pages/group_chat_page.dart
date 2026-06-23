@@ -1,11 +1,97 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/character.dart';
 import '../providers/chat_provider.dart';
 import '../widgets/chat_bubble.dart';
 
 /// 多人聊天室页（1vN）
-class GroupChatPage extends StatelessWidget {
+class GroupChatPage extends StatefulWidget {
   const GroupChatPage({super.key});
+
+  @override
+  State<GroupChatPage> createState() => _GroupChatPageState();
+}
+
+class _GroupChatPageState extends State<GroupChatPage> {
+  final ScrollController _scrollController = ScrollController();
+  final TextEditingController _inputController = TextEditingController();
+  int _lastMessageCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _lastMessageCount = context.read<ChatProvider>().messages.length;
+    context.read<ChatProvider>().addListener(_onChatUpdate);
+  }
+
+  @override
+  void dispose() {
+    context.read<ChatProvider>().removeListener(_onChatUpdate);
+    _scrollController.dispose();
+    _inputController.dispose();
+    super.dispose();
+  }
+
+  void _onChatUpdate() {
+    final chat = context.read<ChatProvider>();
+    if (chat.messages.length > _lastMessageCount) {
+      _lastMessageCount = chat.messages.length;
+      _scrollToBottom();
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  String _roomName(List<Character> chars) {
+    if (chars.isEmpty) return '聊天室';
+    final names = chars.map((c) => c.name).join('、');
+    if (chars.every((c) => c.from.contains('狂飙'))) return '⚡ 京海风云录';
+    return '📢 $names';
+  }
+
+  Future<bool> _confirmClear(BuildContext context, ChatProvider chat) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A1A),
+        title: const Text('清空对话？'),
+        content: const Text('所有消息将被删除，无法恢复。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red[300]),
+            child: const Text('清空'),
+          ),
+        ],
+      ),
+    );
+    if (result == true) {
+      chat.clearMessages();
+    }
+    return result ?? false;
+  }
+
+  void _sendMessage(ChatProvider chat) {
+    final text = _inputController.text.trim();
+    if (text.isEmpty || !chat.canSend) return;
+    chat.sendMessage(text);
+    _inputController.clear();
+    _scrollToBottom();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,6 +99,12 @@ class GroupChatPage extends StatelessWidget {
 
     return Consumer<ChatProvider>(
       builder: (context, chat, _) {
+        // 角色颜色查找表
+        final colorMap = <String, Color>{};
+        for (final c in chat.roomCharacters) {
+          colorMap[c.id] = c.labelColor;
+        }
+
         return Scaffold(
           appBar: AppBar(
             backgroundColor: Colors.transparent,
@@ -23,7 +115,6 @@ class GroupChatPage extends StatelessWidget {
             ),
             title: Row(
               children: [
-                // 显示所有成员小头像
                 ...chat.roomCharacters.take(4).map((c) => Padding(
                       padding: const EdgeInsets.only(right: 4),
                       child: CircleAvatar(
@@ -33,14 +124,19 @@ class GroupChatPage extends StatelessWidget {
                       ),
                     )),
                 const SizedBox(width: 8),
-                const Text('聊天室'),
+                Flexible(
+                  child: Text(
+                    _roomName(chat.roomCharacters),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
             actions: [
               if (chat.hasMessages)
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
-                  onPressed: chat.clearMessages,
+                  onPressed: () => _confirmClear(context, chat),
                   tooltip: '清空对话',
                 ),
             ],
@@ -90,22 +186,22 @@ class GroupChatPage extends StatelessWidget {
 
               // 消息列表
               Expanded(
-                child: chat.messages.isEmpty
+                child: chat.messages.isEmpty && chat.loadingCharacterIds.isEmpty
                     ? _buildEmptyState(theme)
                     : ListView.builder(
+                        controller: _scrollController,
                         padding: const EdgeInsets.all(16),
-                        itemCount: chat.messages.length +
-                            chat.loadingCharacterIds.length,
+                        itemCount: chat.messages.length,
                         itemBuilder: (context, index) {
-                          if (index < chat.messages.length) {
-                            final msg = chat.messages[index];
-                            return ChatBubble(
-                              message: msg,
-                              isUser: msg.role == 'user',
-                            );
-                          }
-                          // 加载中的占位
-                          return const SizedBox.shrink();
+                          final msg = chat.messages[index];
+                          final color = msg.characterId != null
+                              ? colorMap[msg.characterId]
+                              : null;
+                          return ChatBubble(
+                            message: msg,
+                            isUser: msg.role == 'user',
+                            characterColor: color,
+                          );
                         },
                       ),
               ),
@@ -183,8 +279,6 @@ class GroupChatPage extends StatelessWidget {
   }
 
   Widget _buildInputBar(BuildContext context, ChatProvider chat) {
-    final controller = TextEditingController();
-
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
       decoration: const BoxDecoration(
@@ -200,7 +294,7 @@ class GroupChatPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(24),
               ),
               child: TextField(
-                controller: controller,
+                controller: _inputController,
                 textInputAction: TextInputAction.send,
                 maxLines: 4,
                 minLines: 1,
@@ -208,12 +302,7 @@ class GroupChatPage extends StatelessWidget {
                   hintText: '问大家一个问题…',
                   border: InputBorder.none,
                 ),
-                onSubmitted: (value) {
-                  if (value.trim().isNotEmpty && chat.canSend) {
-                    chat.sendMessage(value);
-                    controller.clear();
-                  }
-                },
+                onSubmitted: (_) => _sendMessage(chat),
               ),
             ),
           ),
@@ -226,14 +315,7 @@ class GroupChatPage extends StatelessWidget {
             child: IconButton(
               icon: const Icon(Icons.send, size: 18),
               color: Colors.white,
-              onPressed: chat.canSend
-                  ? () {
-                      if (controller.text.trim().isNotEmpty) {
-                        chat.sendMessage(controller.text);
-                        controller.clear();
-                      }
-                    }
-                  : null,
+              onPressed: () => _sendMessage(chat),
             ),
           ),
         ],
