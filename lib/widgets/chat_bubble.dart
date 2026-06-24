@@ -121,12 +121,7 @@ class ChatBubble extends StatelessWidget {
                   ),
                   child: message.isLoading && message.content.isEmpty
                       ? _buildLoadingIndicator(theme)
-                      : Text(
-                          message.content,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: isLight ? Colors.black87 : Colors.white.withOpacity(0.9),
-                          ),
-                        ),
+                      : _buildContent(theme),
                 ),
               ],
             ),
@@ -136,11 +131,83 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
+  Widget _buildContent(ThemeData theme) {
+    final isLight = theme.brightness == Brightness.light;
+    final textColor = isLight ? Colors.black87 : Colors.white.withOpacity(0.9);
+
+    if (!message.isLoading) {
+      return Text(
+        message.content,
+        style: theme.textTheme.bodyMedium?.copyWith(color: textColor),
+      );
+    }
+
+    // 流式加载中 — 内容末尾加闪烁光标
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Flexible(
+          child: Text(
+            message.content,
+            style: theme.textTheme.bodyMedium?.copyWith(color: textColor),
+          ),
+        ),
+        const _StreamingCursor(),
+      ],
+    );
+  }
+
   Widget _buildLoadingIndicator(ThemeData theme) {
     return _LoadingDots(isLight: theme.brightness == Brightness.light);
   }
 }
 
+/// 流式输出时的闪烁光标
+class _StreamingCursor extends StatefulWidget {
+  const _StreamingCursor();
+
+  @override
+  State<_StreamingCursor> createState() => _StreamingCursorState();
+}
+
+class _StreamingCursorState extends State<_StreamingCursor>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    return FadeTransition(
+      opacity: _controller,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 1),
+        child: Text(
+          '▊',
+          style: TextStyle(
+            fontSize: 14,
+            color: isLight ? Colors.black54 : Colors.white60,
+          ),
+        ),
+      ),
+    );
+  }
+}
 /// 循环闪烁的加载点动画组件
 class _LoadingDots extends StatefulWidget {
   final bool isLight;

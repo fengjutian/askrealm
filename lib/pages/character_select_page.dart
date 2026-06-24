@@ -273,7 +273,7 @@ class _CharacterSelectPageState extends State<CharacterSelectPage> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.72,
+                childAspectRatio: 1.15,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),

@@ -16,6 +16,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _inputController = TextEditingController();
   int _lastMessageCount = 0;
+  bool _userScrolledUp = false;
   late final ChatProvider _chatProvider;
 
   @override
@@ -24,21 +25,33 @@ class _SingleChatPageState extends State<SingleChatPage> {
     _chatProvider = context.read<ChatProvider>();
     _lastMessageCount = _chatProvider.messages.length;
     _chatProvider.addListener(_onChatUpdate);
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _chatProvider.removeListener(_onChatUpdate);
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _inputController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    // 距离底部 > 100px 视为用户主动上翻，停止自动滚动
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    _userScrolledUp = (maxScroll - currentScroll) > 100;
   }
 
   void _onChatUpdate() {
     final chat = context.read<ChatProvider>();
     if (chat.messages.length > _lastMessageCount || chat.isLoading) {
       _lastMessageCount = chat.messages.length;
-      _scrollToBottom();
+      if (!_userScrolledUp) {
+        _scrollToBottom();
+      }
     }
   }
 
@@ -47,7 +60,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
         );
       }

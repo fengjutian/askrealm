@@ -17,6 +17,18 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
+  /// 当前平台是否为桌面端（PC），移动端不显示左侧边栏
+  bool get _isDesktop {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.windows:
+      case TargetPlatform.macOS:
+      case TargetPlatform.linux:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   final List<_SidebarItem> _items = const [
     _SidebarItem(icon: Icons.person_outline, label: '单人对话'),
     _SidebarItem(icon: Icons.groups_outlined, label: '多人对话'),
@@ -46,57 +58,58 @@ class _HomePageState extends State<HomePage> {
       body: SafeArea(
         child: Row(
           children: [
-            // ── 左侧边栏（Activity Bar）──
-            Container(
-              width: 72,
-              decoration: BoxDecoration(
-                color: theme.brightness == Brightness.dark
-                    ? const Color(0xFF111111)
-                    : const Color(0xFFE8E8E8),
-                border: Border(
-                  right: BorderSide(
-                    color: theme.brightness == Brightness.dark
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.black.withOpacity(0.08),
-                  ),
-                ),
-              ),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  // App 图标
-                  Text(
-                    '🎬',
-                    style: TextStyle(fontSize: 26),
-                  ),
-                  const SizedBox(height: 24),
-                  // 导航按钮
-                  ..._items.asMap().entries.map((entry) {
-                    final i = entry.key;
-                    final item = entry.value;
-                    final selected = _selectedIndex == i;
-                    return _ActivityBarButton(
-                      icon: item.icon,
-                      label: item.label,
-                      isSelected: selected,
-                      onTap: () => _onItemSelected(i),
-                    );
-                  }),
-                  const Spacer(),
-                  // 底部版本号
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Text(
-                      'v1.0',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey[700],
-                      ),
+            // ── 左侧边栏（Activity Bar），仅在 PC 平台显示 ──
+            if (_isDesktop)
+              Container(
+                width: 72,
+                decoration: BoxDecoration(
+                  color: theme.brightness == Brightness.dark
+                      ? const Color(0xFF111111)
+                      : const Color(0xFFE8E8E8),
+                  border: Border(
+                    right: BorderSide(
+                      color: theme.brightness == Brightness.dark
+                          ? Colors.white.withOpacity(0.06)
+                          : Colors.black.withOpacity(0.08),
                     ),
                   ),
-                ],
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    // App 图标
+                    Text(
+                      '🎬',
+                      style: TextStyle(fontSize: 26),
+                    ),
+                    const SizedBox(height: 24),
+                    // 导航按钮
+                    ..._items.asMap().entries.map((entry) {
+                      final i = entry.key;
+                      final item = entry.value;
+                      final selected = _selectedIndex == i;
+                      return _ActivityBarButton(
+                        icon: item.icon,
+                        label: item.label,
+                        isSelected: selected,
+                        onTap: () => _onItemSelected(i),
+                      );
+                    }),
+                    const Spacer(),
+                    // 底部版本号
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Text(
+                        'v1.0',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
             // ── 右侧主内容区 ──
             Expanded(

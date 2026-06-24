@@ -71,6 +71,7 @@ class ChatProvider extends ChangeNotifier {
     _currentCharacter = character;
     _roomCharacters = [];
     _messages.clear();
+    _isLoading = false;
     _clearCount++;
     notifyListeners();
   }
@@ -81,6 +82,7 @@ class ChatProvider extends ChangeNotifier {
     _roomCharacters = characters;
     _currentCharacter = null;
     _messages.clear();
+    _isLoading = false;
     _clearCount++;
     notifyListeners();
   }
@@ -138,7 +140,10 @@ class ChatProvider extends ChangeNotifier {
 
     try {
       final buffer = StringBuffer();
-      await ApiService.chatStream(
+      // 节流：最频繁每 50ms 刷新一次 UI，防止抖动
+      var lastNotify = DateTime.now();
+
+      final fullText = await ApiService.chatStream(
         baseUrl: StorageService.baseUrl,
         apiKey: StorageService.apiKey ?? '',
         model: StorageService.model,
@@ -149,13 +154,22 @@ class ChatProvider extends ChangeNotifier {
           if (_isStale(clearAtStart)) return;
           buffer.write(delta);
           _updateMessageContent(msgId, buffer.toString());
-          notifyListeners();
+          final now = DateTime.now();
+          if (now.difference(lastNotify).inMilliseconds >= 50) {
+            lastNotify = now;
+            notifyListeners();
+          }
         },
       );
 
       if (_isStale(clearAtStart)) return;
 
-      // 标记完成
+      // 如果 onDelta 从未被触发（如 SSE 格式不匹配），用返回的全量文本兜底
+      if (buffer.isEmpty && fullText.isNotEmpty) {
+        _updateMessageContent(msgId, fullText);
+      }
+
+      // 确保最终内容刷新
       _finishMessage(msgId);
     } catch (e) {
       if (_isStale(clearAtStart)) return;
@@ -193,7 +207,9 @@ class ChatProvider extends ChangeNotifier {
 
       try {
         final buffer = StringBuffer();
-        await ApiService.chatStream(
+        var lastNotify = DateTime.now();
+
+        final fullText = await ApiService.chatStream(
           baseUrl: StorageService.baseUrl,
           apiKey: StorageService.apiKey ?? '',
           model: StorageService.model,
@@ -204,11 +220,20 @@ class ChatProvider extends ChangeNotifier {
             if (_isStale(clearAtStart)) return;
             buffer.write(delta);
             _updateMessageContent(msgId, buffer.toString());
-            notifyListeners();
+            final now = DateTime.now();
+            if (now.difference(lastNotify).inMilliseconds >= 50) {
+              lastNotify = now;
+              notifyListeners();
+            }
           },
         );
 
         if (_isStale(clearAtStart)) break;
+
+        // 如果 onDelta 从未被触发，用返回的全量文本兜底
+        if (buffer.isEmpty && fullText.isNotEmpty) {
+          _updateMessageContent(msgId, fullText);
+        }
 
         _finishMessage(msgId);
       } catch (e) {

@@ -121,8 +121,8 @@ class ApiService {
           .listen(
         (line) {
           // SSE 格式: data: {...}
-          if (!line.startsWith('data: ')) return;
-          final data = line.substring(6).trim();
+          if (!line.startsWith('data:')) return;
+          final data = line.substring(5).trim();
 
           // 结束标记
           if (data == '[DONE]') {

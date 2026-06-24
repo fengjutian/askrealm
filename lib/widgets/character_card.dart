@@ -68,124 +68,131 @@ class _CharacterCardState extends State<CharacterCard> {
             child: Stack(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Emoji 头像 + 作品名 ──
+                      // ── Emoji + 基本信息 ──
                       Row(
                         children: [
-                          Text(c.emoji, style: const TextStyle(fontSize: 36)),
-                          const Spacer(),
+                          // Emoji 头像
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
+                            width: 44,
+                            height: 44,
                             decoration: BoxDecoration(
-                              color: theme.brightness == Brightness.dark
-                                  ? Colors.white.withOpacity(0.06)
-                                  : Colors.black.withOpacity(0.04),
-                              borderRadius: BorderRadius.circular(4),
+                              color: c.labelColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Text(
-                              c.from,
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey[500],
+                            child: Center(
+                              child: Text(
+                                c.emoji,
+                                style: const TextStyle(fontSize: 24),
                               ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          // 名称 + 作品 + 标签
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        c.name,
+                                        style: theme.textTheme.titleSmall?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: isSelected ? c.labelColor : null,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                        vertical: 1,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: theme.brightness == Brightness.dark
+                                            ? Colors.white.withOpacity(0.06)
+                                            : Colors.black.withOpacity(0.04),
+                                        borderRadius: BorderRadius.circular(3),
+                                      ),
+                                      child: Text(
+                                        c.from,
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          color: Colors.grey[500],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 3),
+                                // 标签
+                                Row(
+                                  children: c.tags.take(2).map((tag) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 4),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                          vertical: 1,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: c.labelColor.withOpacity(0.12),
+                                          borderRadius: BorderRadius.circular(3),
+                                        ),
+                                        child: Text(
+                                          tag,
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            color: c.labelColor,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-
-                      // ── 角色名 ──
-                      Text(
-                        c.name,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isSelected ? c.labelColor : null,
-                        ),
-                      ),
                       const SizedBox(height: 6),
 
-                      // ── 标签行 ──
-                      SizedBox(
-                        height: 22,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: c.tags.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(width: 4),
-                          itemBuilder: (context, index) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: c.labelColor.withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                c.tags[index],
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: c.labelColor,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-
-                      // ── 性格描述 ──
-                      Text(
-                        c.description,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[400],
-                          fontSize: 11,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const Spacer(),
-
-                      // ── 代表台词（突出展示） ──
+                      // ── 代表台词（一行） ──
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: c.labelColor.withOpacity(
-                            _isHovered ? 0.12 : 0.06,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
+                          color: c.labelColor.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(6),
                           border: Border(
                             left: BorderSide(
-                              color: c.labelColor.withOpacity(0.4),
-                              width: 3,
+                              color: c.labelColor.withOpacity(0.3),
+                              width: 2,
                             ),
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                '“${c.sampleLine}”',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: c.labelColor.withOpacity(0.8),
-                                  height: 1.3,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          '“${c.sampleLine}”',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: c.labelColor.withOpacity(0.7),
+                            height: 1.3,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -195,12 +202,12 @@ class _CharacterCardState extends State<CharacterCard> {
                 // 多选模式下的勾选标记
                 if (widget.isMultiSelect)
                   Positioned(
-                    top: 8,
-                    right: 8,
+                    top: 6,
+                    right: 6,
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      width: 26,
-                      height: 26,
+                      width: 22,
+                      height: 22,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isSelected
@@ -218,7 +225,7 @@ class _CharacterCardState extends State<CharacterCard> {
                       child: isSelected
                           ? const Icon(
                               Icons.check,
-                              size: 16,
+                              size: 14,
                               color: Colors.white,
                             )
                           : null,
