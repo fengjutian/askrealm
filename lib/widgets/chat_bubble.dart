@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/message.dart';
+import '../theme.dart';
 
-/// 聊天气泡组件
+/// 聊天气泡组件 — 脚本页风格（Noir Cinema）
 class ChatBubble extends StatelessWidget {
   final Message message;
   final bool isUser;
-  final Color? characterColor; // 角色标签色
+  final Color? characterColor;
 
   const ChatBubble({
     super.key,
@@ -17,17 +18,17 @@ class ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     if (isUser) {
-      return _buildUserBubble(theme);
+      return _buildUserBubble(isDark);
     } else {
-      return _buildAssistantBubble(theme);
+      return _buildAssistantBubble(isDark);
     }
   }
 
-  /// 用户消息气泡（靠右）
-  Widget _buildUserBubble(ThemeData theme) {
-    final isLight = theme.brightness == Brightness.light;
+  /// 用户消息气泡（靠右）— 暖金底色，像导演批注
+  Widget _buildUserBubble(bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(left: 60, bottom: 8),
       child: Row(
@@ -38,20 +39,27 @@ class ChatBubble extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isLight
-                    ? const Color(0xFF1E88E5).withOpacity(0.85)
-                    : const Color(0xFF1E88E5).withOpacity(0.3),
+                color: isDark
+                    ? spotlightGold.withOpacity(0.14)
+                    : const Color(0xFFF5ECDA),
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(4),
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
+                  topLeft: Radius.circular(18),
+                  topRight: Radius.circular(6),
+                  bottomLeft: Radius.circular(18),
+                  bottomRight: Radius.circular(18),
+                ),
+                border: Border.all(
+                  color: spotlightGold.withOpacity(isDark ? 0.2 : 0.35),
+                  width: 0.8,
                 ),
               ),
               child: Text(
                 message.content,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.white,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: isDark ? warmWhite : const Color(0xFF2A2218),
+                  letterSpacing: 0.3,
+                  height: 1.5,
                 ),
               ),
             ),
@@ -62,23 +70,34 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
-  /// 角色消息气泡（靠左，带头像和名字）
-  Widget _buildAssistantBubble(ThemeData theme) {
-    final isLight = theme.brightness == Brightness.light;
+  /// 角色消息气泡（靠左）— 卡片底 + 角色色左边条 + 头像金色环
+  Widget _buildAssistantBubble(bool isDark) {
+    final color = characterColor ?? warmGrey;
+
     return Padding(
       padding: const EdgeInsets.only(right: 60, bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 角色头像
+          // 角色头像 — 金色细环
           Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: isLight ? Colors.grey[200] : Colors.white12,
-              child: Text(
-                message.characterEmoji ?? '🤖',
-                style: const TextStyle(fontSize: 20),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isDark ? noirCard : Colors.white,
+                border: Border.all(
+                  color: color.withOpacity(0.45),
+                  width: 1.2,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  message.characterEmoji ?? '🤖',
+                  style: const TextStyle(fontSize: 18),
+                ),
               ),
             ),
           ),
@@ -86,42 +105,41 @@ class ChatBubble extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 角色名标签
+                // 角色名标签 — 角色色
                 if (message.characterName != null)
                   Padding(
                     padding: const EdgeInsets.only(left: 4, bottom: 4),
                     child: Text(
                       message.characterName!,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: characterColor ?? Colors.grey[400],
-                        fontWeight: FontWeight.w600,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: color,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
                       ),
                     ),
                   ),
                 // 气泡内容
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: theme.cardColor,
+                    color: isDark ? noirCard : Colors.white,
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(4),
-                      topRight: Radius.circular(20),
-                      bottomLeft: Radius.circular(20),
-                      bottomRight: Radius.circular(20),
+                      topLeft: Radius.circular(6),
+                      topRight: Radius.circular(18),
+                      bottomLeft: Radius.circular(18),
+                      bottomRight: Radius.circular(18),
                     ),
                     border: Border(
-                      left: BorderSide(
-                        color: characterColor?.withOpacity(0.6) ?? theme.dividerColor,
-                        width: 3,
-                      ),
+                      left: BorderSide(color: color.withOpacity(0.55), width: 3),
+                      top: BorderSide(color: noirDivider.withOpacity(0.4)),
+                      right: BorderSide(color: noirDivider.withOpacity(0.4)),
+                      bottom: BorderSide(color: noirDivider.withOpacity(0.4)),
                     ),
                   ),
                   child: message.isLoading && message.content.isEmpty
-                      ? _buildLoadingIndicator(theme)
-                      : _buildContent(theme),
+                      ? _buildLoadingIndicator(isDark, color)
+                      : _buildContent(isDark, color),
                 ),
               ],
             ),
@@ -131,18 +149,22 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildContent(ThemeData theme) {
-    final isLight = theme.brightness == Brightness.light;
-    final textColor = isLight ? Colors.black87 : Colors.white.withOpacity(0.9);
+  Widget _buildContent(bool isDark, Color color) {
+    final textColor = isDark ? warmWhite : const Color(0xFF1A1A1A);
 
     if (!message.isLoading) {
       return Text(
         message.content,
-        style: theme.textTheme.bodyMedium?.copyWith(color: textColor),
+        style: TextStyle(
+          fontSize: 15,
+          color: textColor,
+          letterSpacing: 0.3,
+          height: 1.5,
+        ),
       );
     }
 
-    // 流式加载中 — 内容末尾加闪烁光标
+    // 流式加载中 — 金色闪烁光标
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -150,7 +172,12 @@ class ChatBubble extends StatelessWidget {
         Flexible(
           child: Text(
             message.content,
-            style: theme.textTheme.bodyMedium?.copyWith(color: textColor),
+            style: TextStyle(
+              fontSize: 15,
+              color: textColor,
+              letterSpacing: 0.3,
+              height: 1.5,
+            ),
           ),
         ),
         const _StreamingCursor(),
@@ -158,12 +185,12 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingIndicator(ThemeData theme) {
-    return _LoadingDots(isLight: theme.brightness == Brightness.light);
+  Widget _buildLoadingIndicator(bool isDark, Color color) {
+    return _LoadingDots(color: color);
   }
 }
 
-/// 流式输出时的闪烁光标
+/// ─── 流式输出金色闪烁光标 ───────────────────────────────────────────
 class _StreamingCursor extends StatefulWidget {
   const _StreamingCursor();
 
@@ -192,26 +219,23 @@ class _StreamingCursorState extends State<_StreamingCursor>
 
   @override
   Widget build(BuildContext context) {
-    final isLight = Theme.of(context).brightness == Brightness.light;
     return FadeTransition(
       opacity: _controller,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 1),
+      child: const Padding(
+        padding: EdgeInsets.only(left: 1),
         child: Text(
           '▊',
-          style: TextStyle(
-            fontSize: 14,
-            color: isLight ? Colors.black54 : Colors.white60,
-          ),
+          style: TextStyle(fontSize: 14, color: spotlightGold),
         ),
       ),
     );
   }
 }
-/// 循环闪烁的加载点动画组件
+
+/// ─── 加载跳动圆点 — 金色 ────────────────────────────────────────────
 class _LoadingDots extends StatefulWidget {
-  final bool isLight;
-  const _LoadingDots({required this.isLight});
+  final Color color;
+  const _LoadingDots({required this.color});
 
   @override
   State<_LoadingDots> createState() => _LoadingDotsState();
@@ -245,16 +269,14 @@ class _LoadingDotsState extends State<_LoadingDots>
           animation: _controller,
           builder: (context, child) {
             final phase = (_controller.value * 3 + i) % 1.0;
-            final opacity = 0.3 + 0.7 * (phase < 0.5 ? phase * 2 : (1 - phase) * 2);
+            final opacity = 0.25 + 0.75 * (phase < 0.5 ? phase * 2 : (1 - phase) * 2);
             return Container(
-              width: 8,
-              height: 8,
+              width: 7,
+              height: 7,
               margin: const EdgeInsets.only(right: 4),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: widget.isLight
-                    ? Colors.black.withOpacity(opacity * 0.5)
-                    : Colors.white.withOpacity(opacity),
+                color: widget.color.withOpacity(opacity),
               ),
             );
           },

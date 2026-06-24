@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/character.dart';
+import '../theme.dart';
 
-/// 角色选择卡片（支持单选 / 多选模式）
+/// 角色选择卡片 — 电影海报风格（Noir Cinema）
 class CharacterCard extends StatefulWidget {
   final Character character;
   final bool isSelected;
@@ -28,8 +29,11 @@ class _CharacterCardState extends State<CharacterCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final c = widget.character;
     final isSelected = widget.isSelected;
+    final cardBg = isDark ? noirCard : Colors.white;
+    final borderBase = isDark ? noirDivider : const Color(0xFFDDD5C8);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -43,23 +47,22 @@ class _CharacterCardState extends State<CharacterCard> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? c.labelColor.withOpacity(0.15)
-                  : theme.cardColor,
-              borderRadius: BorderRadius.circular(16),
+              color: isSelected ? c.labelColor.withOpacity(0.1) : cardBg,
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: isSelected
-                    ? c.labelColor
+                    ? spotlightGold
                     : _isHovered
-                        ? c.labelColor.withOpacity(0.3)
-                        : theme.dividerColor,
-                width: isSelected ? 2 : (_isHovered ? 1.5 : 1),
+                        ? c.labelColor.withOpacity(0.35)
+                        : borderBase,
+                width: isSelected ? 1.5 : (_isHovered ? 1.3 : 1),
               ),
               boxShadow: isSelected || _isHovered
                   ? [
                       BoxShadow(
-                        color: c.labelColor.withOpacity(isSelected ? 0.2 : 0.08),
-                        blurRadius: 12,
+                        color: (isSelected ? spotlightGold : c.labelColor)
+                            .withOpacity(isSelected ? 0.18 : 0.06),
+                        blurRadius: 14,
                         offset: const Offset(0, 4),
                       ),
                     ]
@@ -75,23 +78,26 @@ class _CharacterCardState extends State<CharacterCard> {
                       // ── Emoji + 基本信息 ──
                       Row(
                         children: [
-                          // Emoji 头像
+                          // Emoji 头像 — 金色微光底
                           Container(
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: c.labelColor.withOpacity(0.1),
+                              color: c.labelColor.withOpacity(0.08),
                               borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                if (isSelected)
+                                  BoxShadow(
+                                    color: spotlightGold.withOpacity(0.15),
+                                    blurRadius: 8,
+                                  ),
+                              ],
                             ),
                             child: Center(
-                              child: Text(
-                                c.emoji,
-                                style: const TextStyle(fontSize: 24),
-                              ),
+                              child: Text(c.emoji, style: const TextStyle(fontSize: 24)),
                             ),
                           ),
                           const SizedBox(width: 10),
-                          // 名称 + 作品 + 标签
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,9 +108,13 @@ class _CharacterCardState extends State<CharacterCard> {
                                     Flexible(
                                       child: Text(
                                         c.name,
-                                        style: theme.textTheme.titleSmall?.copyWith(
+                                        style: TextStyle(
+                                          fontSize: 14,
                                           fontWeight: FontWeight.bold,
-                                          color: isSelected ? c.labelColor : null,
+                                          color: isSelected
+                                              ? (isDark ? spotlightGold : const Color(0xFF8B6914))
+                                              : (isDark ? warmWhite : const Color(0xFF1A1A1A)),
+                                          letterSpacing: 0.3,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -112,13 +122,10 @@ class _CharacterCardState extends State<CharacterCard> {
                                     ),
                                     const SizedBox(width: 4),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                        vertical: 1,
-                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                                       decoration: BoxDecoration(
-                                        color: theme.brightness == Brightness.dark
-                                            ? Colors.white.withOpacity(0.06)
+                                        color: isDark
+                                            ? warmWhite.withOpacity(0.05)
                                             : Colors.black.withOpacity(0.04),
                                         borderRadius: BorderRadius.circular(3),
                                       ),
@@ -126,7 +133,7 @@ class _CharacterCardState extends State<CharacterCard> {
                                         c.from,
                                         style: TextStyle(
                                           fontSize: 9,
-                                          color: Colors.grey[500],
+                                          color: warmGrey.withOpacity(0.7),
                                         ),
                                       ),
                                     ),
@@ -139,19 +146,16 @@ class _CharacterCardState extends State<CharacterCard> {
                                     return Padding(
                                       padding: const EdgeInsets.only(right: 4),
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 5,
-                                          vertical: 1,
-                                        ),
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                                         decoration: BoxDecoration(
-                                          color: c.labelColor.withOpacity(0.12),
+                                          color: c.labelColor.withOpacity(0.1),
                                           borderRadius: BorderRadius.circular(3),
                                         ),
                                         child: Text(
                                           tag,
                                           style: TextStyle(
                                             fontSize: 9,
-                                            color: c.labelColor,
+                                            color: c.labelColor.withOpacity(0.8),
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
@@ -166,28 +170,25 @@ class _CharacterCardState extends State<CharacterCard> {
                       ),
                       const SizedBox(height: 6),
 
-                      // ── 代表台词（一行） ──
+                      // ── 代表台词 — 电影字幕感 ──
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: c.labelColor.withOpacity(0.05),
+                          color: c.labelColor.withOpacity(0.04),
                           borderRadius: BorderRadius.circular(6),
                           border: Border(
                             left: BorderSide(
-                              color: c.labelColor.withOpacity(0.3),
+                              color: c.labelColor.withOpacity(0.25),
                               width: 2,
                             ),
                           ),
                         ),
                         child: Text(
-                          '“${c.sampleLine}”',
+                          '"${c.sampleLine}"',
                           style: TextStyle(
                             fontSize: 10,
-                            color: c.labelColor.withOpacity(0.7),
+                            color: c.labelColor.withOpacity(0.6),
                             height: 1.3,
                             fontStyle: FontStyle.italic,
                           ),
@@ -199,7 +200,7 @@ class _CharacterCardState extends State<CharacterCard> {
                   ),
                 ),
 
-                // 多选模式下的勾选标记
+                // 多选模式下的勾选标记 — 金色
                 if (widget.isMultiSelect)
                   Positioned(
                     top: 6,
@@ -210,24 +211,18 @@ class _CharacterCardState extends State<CharacterCard> {
                       height: 22,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isSelected
-                            ? c.labelColor
-                            : Colors.transparent,
+                        color: isSelected ? spotlightGold : Colors.transparent,
                         border: Border.all(
                           color: isSelected
-                              ? c.labelColor
-                              : theme.brightness == Brightness.dark
-                                  ? Colors.white38
+                              ? spotlightGold
+                              : isDark
+                                  ? warmWhite.withOpacity(0.2)
                                   : Colors.black26,
                           width: 2,
                         ),
                       ),
                       child: isSelected
-                          ? const Icon(
-                              Icons.check,
-                              size: 14,
-                              color: Colors.white,
-                            )
+                          ? const Icon(Icons.check, size: 14, color: Color(0xFF0A0A0A))
                           : null,
                     ),
                   ),

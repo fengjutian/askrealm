@@ -36,42 +36,73 @@ class AskRealmApp extends StatelessWidget {
             themeMode: settings.themeMode,
             initialRoute: '/',
             onGenerateRoute: (routeSettings) {
+              final Widget page;
               switch (routeSettings.name) {
                 case '/':
-                  return MaterialPageRoute(
-                    settings: routeSettings,
-                    builder: (_) => const HomePage(),
-                  );
+                  page = const HomePage();
+                  break;
                 case '/select':
-                  return MaterialPageRoute(
-                    settings: routeSettings,
-                    builder: (_) => const CharacterSelectPage(),
-                  );
+                  page = const CharacterSelectPage();
+                  break;
                 case '/chat/single':
-                  return MaterialPageRoute(
-                    settings: routeSettings,
-                    builder: (_) => const SingleChatPage(),
-                  );
+                  page = const SingleChatPage();
+                  break;
                 case '/chat/group':
-                  return MaterialPageRoute(
-                    settings: routeSettings,
-                    builder: (_) => const GroupChatPage(),
-                  );
+                  page = const GroupChatPage();
+                  break;
                 case '/settings':
-                  return MaterialPageRoute(
-                    settings: routeSettings,
-                    builder: (_) => const SettingsPage(),
-                  );
+                  page = const SettingsPage();
+                  break;
                 default:
-                  return MaterialPageRoute(
-                    settings: routeSettings,
-                    builder: (_) => const HomePage(),
-                  );
+                  page = const HomePage();
               }
+
+              // 帷幕升起效果：淡入 + 微上移
+              return _CurtainPageRoute(
+                settings: routeSettings,
+                page: page,
+              );
             },
           );
         },
       ),
     );
   }
+}
+
+/// 自定义页面路由 — 帷幕升起过渡动画
+class _CurtainPageRoute extends PageRouteBuilder {
+  final Widget page;
+
+  _CurtainPageRoute({required RouteSettings settings, required this.page})
+      : super(
+          settings: settings,
+          transitionDuration: const Duration(milliseconds: 320),
+          reverseTransitionDuration: const Duration(milliseconds: 260),
+          pageBuilder: (context, animation, secondaryAnimation) => page,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            // 进入：淡入 + 轻微上移，模拟帷幕升起
+            const beginOffset = Offset(0.0, 0.025);
+            const endOffset = Offset.zero;
+
+            final curvedAnimation = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+              reverseCurve: Curves.easeInCubic,
+            );
+
+            final offsetTween = Tween<Offset>(begin: beginOffset, end: endOffset)
+                .animate(curvedAnimation);
+            final fadeTween = Tween<double>(begin: 0.0, end: 1.0)
+                .animate(curvedAnimation);
+
+            return FadeTransition(
+              opacity: fadeTween,
+              child: SlideTransition(
+                position: offsetTween,
+                child: child,
+              ),
+            );
+          },
+        );
 }

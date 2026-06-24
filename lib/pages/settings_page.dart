@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../providers/settings_provider.dart';
+import '../theme.dart';
 
-/// 设置页 — API Key / Base URL / Model 配置
+/// 设置页 — 后台控制室风格（Noir Cinema）
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -80,6 +81,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Consumer<SettingsProvider>(
       builder: (context, settings, _) {
@@ -88,40 +90,41 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('API 配置'),
             backgroundColor: Colors.transparent,
             elevation: 0,
+            iconTheme: const IconThemeData(color: warmGrey),
           ),
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // 状态提示
+              // ── 状态提示卡 ──
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: settings.hasApiKey
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.orange.withOpacity(0.1),
+                      ? spotlightGold.withOpacity(0.08)
+                      : const Color(0xFFE8A840).withOpacity(0.08),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: settings.hasApiKey
-                        ? Colors.green.withOpacity(0.3)
-                        : Colors.orange.withOpacity(0.3),
+                        ? spotlightGold.withOpacity(0.25)
+                        : const Color(0xFFE8A840).withOpacity(0.25),
                   ),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       settings.hasApiKey ? Icons.check_circle : Icons.warning,
-                      color: settings.hasApiKey ? Colors.green : Colors.orange,
+                      color: settings.hasApiKey ? spotlightGold : const Color(0xFFE8A840),
+                      size: 20,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        settings.hasApiKey
-                            ? 'API 已配置，可以开始对话'
-                            : '请先填写 API Key 才能使用',
-                        style: theme.textTheme.bodyMedium?.copyWith(
+                        settings.hasApiKey ? 'API 已配置 — 可以开拍' : '请先填写 API Key 才能使用',
+                        style: TextStyle(
+                          fontSize: 14,
                           color: settings.hasApiKey
-                              ? Colors.green[300]
-                              : Colors.orange[300],
+                              ? spotlightGold.withOpacity(0.9)
+                              : const Color(0xFFE8A840).withOpacity(0.9),
                         ),
                       ),
                     ),
@@ -161,7 +164,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 24),
 
-              // 测试连接按钮
+              // ── 测试连接按钮 — 金色 ──
               SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -176,11 +179,15 @@ class _SettingsPageState extends State<SettingsPage> {
                             color: Colors.white,
                           ),
                         )
-                      : const Icon(Icons.wifi_find),
-                  label: Text(_isTesting ? '测试中…' : '测试连接'),
+                      : const Icon(Icons.wifi_find, color: Color(0xFF0A0A0A)),
+                  label: Text(
+                    _isTesting ? '测试中…' : '测试连接',
+                    style: const TextStyle(color: Color(0xFF0A0A0A)),
+                  ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E88E5),
-                    foregroundColor: Colors.white,
+                    backgroundColor: spotlightGold,
+                    disabledBackgroundColor: noirDivider,
+                    disabledForegroundColor: warmGrey,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
@@ -195,10 +202,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   child: Text(
                     _testResult!,
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.bodySmall?.copyWith(
+                    style: TextStyle(
+                      fontSize: 13,
                       color: _testResult!.startsWith('✅')
-                          ? Colors.green[300]
-                          : Colors.red[300],
+                          ? spotlightGold.withOpacity(0.9)
+                          : curtainRed.withOpacity(0.8),
                     ),
                   ),
                 ),
@@ -211,17 +219,15 @@ class _SettingsPageState extends State<SettingsPage> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: theme.cardColor,
+                  color: isDark ? noirCard : Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Theme.of(context).dividerColor,
-                  ),
+                  border: Border.all(color: isDark ? noirDivider : const Color(0xFFDDD5C8)),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       settings.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-                      color: theme.colorScheme.primary,
+                      color: spotlightGold,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -230,11 +236,18 @@ class _SettingsPageState extends State<SettingsPage> {
                         children: [
                           Text(
                             '深色模式',
-                            style: theme.textTheme.titleSmall,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: isDark ? warmWhite : const Color(0xFF1A1A1A),
+                            ),
                           ),
                           Text(
                             settings.isDarkMode ? '当前为深色主题' : '当前为明亮主题',
-                            style: theme.textTheme.bodySmall,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? warmWhite54 : const Color(0xFF8B8378),
+                            ),
                           ),
                         ],
                       ),
@@ -242,7 +255,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Switch(
                       value: settings.isDarkMode,
                       onChanged: (_) => settings.toggleTheme(),
-                      activeColor: theme.colorScheme.primary,
+                      activeColor: spotlightGold,
                     ),
                   ],
                 ),
@@ -250,46 +263,45 @@ class _SettingsPageState extends State<SettingsPage> {
 
               const SizedBox(height: 24),
 
-              // 常见模型推荐
+              // ── 常见配置参考 ──
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: theme.cardColor,
+                  color: isDark ? noirCard : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '💡 常见配置参考',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: spotlightGold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '常见配置参考',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? warmWhite : const Color(0xFF1A1A1A),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
-                    _ReferenceRow(
-                      name: 'DeepSeek',
-                      baseUrl: 'https://api.deepseek.com',
-                      model: 'deepseek-v4-flash',
-                    ),
+                    _ReferenceRow(name: 'DeepSeek', baseUrl: 'https://api.deepseek.com', model: 'deepseek-v4-flash'),
                     const SizedBox(height: 8),
-                    _ReferenceRow(
-                      name: 'OpenAI',
-                      baseUrl: 'https://api.openai.com',
-                      model: 'gpt-4o-mini',
-                    ),
+                    _ReferenceRow(name: 'OpenAI', baseUrl: 'https://api.openai.com', model: 'gpt-4o-mini'),
                     const SizedBox(height: 8),
-                    _ReferenceRow(
-                      name: 'Moonshot（月之暗面）',
-                      baseUrl: 'https://api.moonshot.cn',
-                      model: 'moonshot-v1-8k',
-                    ),
+                    _ReferenceRow(name: 'Moonshot（月之暗面）', baseUrl: 'https://api.moonshot.cn', model: 'moonshot-v1-8k'),
                     const SizedBox(height: 8),
-                    _ReferenceRow(
-                      name: '智谱 GLM',
-                      baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-                      model: 'glm-4-flash',
-                    ),
+                    _ReferenceRow(name: '智谱 GLM', baseUrl: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-flash'),
                   ],
                 ),
               ),
@@ -307,15 +319,15 @@ class _SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Text(
       label,
-      style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.brightness == Brightness.light
-                ? Colors.grey[600]
-                : Colors.grey[400],
-            fontWeight: FontWeight.w600,
-          ),
+      style: TextStyle(
+        fontSize: 13,
+        color: isDark ? warmGrey : const Color(0xFF8B8378),
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+      ),
     );
   }
 }
@@ -335,23 +347,26 @@ class _ConfigField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? noirCard : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).dividerColor),
+        border: Border.all(color: isDark ? noirDivider : const Color(0xFFDDD5C8)),
       ),
       child: TextField(
         controller: controller,
         obscureText: obscureText,
+        style: TextStyle(
+          color: isDark ? warmWhite : const Color(0xFF1A1A1A),
+          fontSize: 14,
+        ),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey[600]),
+          hintStyle: TextStyle(color: warmGrey.withOpacity(0.6)),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
-          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         onChanged: onChanged,
       ),
@@ -372,18 +387,17 @@ class _ReferenceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 100,
+          width: 110,
           child: Text(
             name,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.brightness == Brightness.light
-                  ? Colors.grey[600]
-                  : Colors.grey[400],
+            style: TextStyle(
+              fontSize: 12,
+              color: warmGrey,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -394,20 +408,16 @@ class _ReferenceRow extends StatelessWidget {
             children: [
               Text(
                 baseUrl,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.brightness == Brightness.light
-                      ? Colors.grey[500]
-                      : Colors.grey[500],
+                style: TextStyle(
                   fontSize: 11,
+                  color: isDark ? warmWhite54 : const Color(0xFF8B8378),
                 ),
               ),
               Text(
                 model,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.brightness == Brightness.light
-                      ? Colors.grey[500]
-                      : Colors.grey[500],
+                style: TextStyle(
                   fontSize: 11,
+                  color: isDark ? warmWhite54 : const Color(0xFF8B8378),
                 ),
               ),
             ],

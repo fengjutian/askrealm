@@ -4,6 +4,7 @@ import '../data/characters.dart';
 import '../models/character.dart';
 import '../providers/chat_provider.dart';
 import '../services/storage_service.dart';
+import '../theme.dart';
 import '../widgets/character_card.dart';
 
 /// 角色选择页
@@ -85,7 +86,7 @@ class _CharacterSelectPageState extends State<CharacterSelectPage> {
               Text(
                 character.from,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[500],
+                  color: warmGrey,
                 ),
               ),
               const SizedBox(height: 12),
@@ -119,7 +120,7 @@ class _CharacterSelectPageState extends State<CharacterSelectPage> {
               Text(
                 character.description,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
+                  color: warmGrey,
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
@@ -250,7 +251,7 @@ class _CharacterSelectPageState extends State<CharacterSelectPage> {
               child: Text(
                 '请选择 2~4 个角色加入聊天室\n（已选 ${_selectedIds.length} 个）',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[500],
+                  color: warmGrey,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -261,7 +262,7 @@ class _CharacterSelectPageState extends State<CharacterSelectPage> {
               child: Text(
                 '点击角色开始对话 · 长按查看详情',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[500],
+                  color: warmGrey,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -328,8 +329,8 @@ class _CharacterSelectPageState extends State<CharacterSelectPage> {
                           style: const TextStyle(fontSize: 15),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1E88E5),
-                          foregroundColor: Colors.white,
+                          backgroundColor: spotlightGold,
+                          foregroundColor: const Color(0xFF0A0A0A),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(24),
                           ),
