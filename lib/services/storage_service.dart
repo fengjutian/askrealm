@@ -5,6 +5,7 @@ class StorageService {
   static const _keyBaseUrl = 'api_base_url';
   static const _keyApiKey = 'api_key';
   static const _keyModel = 'api_model';
+  static const _keyThemeMode = 'theme_mode';
 
   // 默认值
   static const String defaultBaseUrl = 'https://api.deepseek.com';
@@ -41,4 +42,10 @@ class StorageService {
   static String get model =>
       _prefs.getString(_keyModel) ?? defaultModel;
   static set model(String value) => _prefs.setString(_keyModel, value);
+
+  // ---- Theme Mode ----
+  /// 'light' or 'dark' (default: 'light')
+  static String get themeMode =>
+      _prefs.getString(_keyThemeMode) ?? 'light';
+  static set themeMode(String value) => _prefs.setString(_keyThemeMode, value);
 }

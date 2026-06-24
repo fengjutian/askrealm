@@ -46,9 +46,15 @@ class _HomePageState extends State<HomePage> {
             Container(
               width: 72,
               decoration: BoxDecoration(
-                color: const Color(0xFF111111),
+                color: theme.brightness == Brightness.dark
+                    ? const Color(0xFF111111)
+                    : const Color(0xFFE8E8E8),
                 border: Border(
-                  right: BorderSide(color: Colors.white.withOpacity(0.06)),
+                  right: BorderSide(
+                    color: theme.brightness == Brightness.dark
+                        ? Colors.white.withOpacity(0.06)
+                        : Colors.black.withOpacity(0.08),
+                  ),
                 ),
               ),
               child: Column(
@@ -113,7 +119,7 @@ class _HomePageState extends State<HomePage> {
               decoration: BoxDecoration(
                 color: theme.cardColor,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white12),
+                border: Border.all(color: theme.dividerColor),
               ),
               child: const Center(
                 child: Text('🎬', style: TextStyle(fontSize: 48)),
@@ -186,7 +192,7 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(color: Colors.white10),
+                      side: BorderSide(color: theme.dividerColor),
                     ),
                   ),
                 );
@@ -238,7 +244,7 @@ class _ActivityBarButton extends StatelessWidget {
                     left: BorderSide(color: Color(0xFF1E88E5), width: 3),
                   )
                 : null,
-            color: isSelected ? Colors.white.withOpacity(0.05) : Colors.transparent,
+            color: isSelected ? Colors.white.withOpacity(0.08) : Colors.transparent,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -293,7 +299,7 @@ class _QuickEntryCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white12),
+          border: Border.all(color: theme.dividerColor),
         ),
         child: Column(
           children: [

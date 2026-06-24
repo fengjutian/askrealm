@@ -205,6 +205,51 @@ class _SettingsPageState extends State<SettingsPage> {
 
               const SizedBox(height: 24),
 
+              // ── 外观设置 ──
+              _SectionLabel(label: '外观'),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      settings.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '深色模式',
+                            style: theme.textTheme.titleSmall,
+                          ),
+                          Text(
+                            settings.isDarkMode ? '当前为深色主题' : '当前为明亮主题',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: settings.isDarkMode,
+                      onChanged: (_) => settings.toggleTheme(),
+                      activeColor: theme.colorScheme.primary,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
               // 常见模型推荐
               Container(
                 padding: const EdgeInsets.all(16),
@@ -262,10 +307,13 @@ class _SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Text(
       label,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: Colors.grey[400],
+      style: theme.textTheme.titleSmall?.copyWith(
+            color: theme.brightness == Brightness.light
+                ? Colors.grey[600]
+                : Colors.grey[400],
             fontWeight: FontWeight.w600,
           ),
     );
@@ -291,7 +339,7 @@ class _ConfigField extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: TextField(
         controller: controller,
@@ -333,7 +381,9 @@ class _ReferenceRow extends StatelessWidget {
           child: Text(
             name,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: Colors.grey[400],
+              color: theme.brightness == Brightness.light
+                  ? Colors.grey[600]
+                  : Colors.grey[400],
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -345,14 +395,18 @@ class _ReferenceRow extends StatelessWidget {
               Text(
                 baseUrl,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[500],
+                  color: theme.brightness == Brightness.light
+                      ? Colors.grey[500]
+                      : Colors.grey[500],
                   fontSize: 11,
                 ),
               ),
               Text(
                 model,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[500],
+                  color: theme.brightness == Brightness.light
+                      ? Colors.grey[500]
+                      : Colors.grey[500],
                   fontSize: 11,
                 ),
               ),

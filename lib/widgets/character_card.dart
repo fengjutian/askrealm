@@ -30,7 +30,7 @@ class CharacterCard extends StatelessWidget {
               : theme.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? character.labelColor : Colors.white12,
+            color: isSelected ? character.labelColor : theme.dividerColor,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -89,7 +89,11 @@ class CharacterCard extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: isSelected ? character.labelColor : Colors.transparent,
                     border: Border.all(
-                      color: isSelected ? character.labelColor : Colors.white38,
+                      color: isSelected
+                          ? character.labelColor
+                          : theme.brightness == Brightness.dark
+                              ? Colors.white38
+                              : Colors.black26,
                       width: 2,
                     ),
                   ),

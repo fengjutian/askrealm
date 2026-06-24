@@ -58,7 +58,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
+        backgroundColor: Theme.of(ctx).dialogTheme.backgroundColor,
         title: const Text('清空对话？'),
         content: const Text('所有消息将被删除，无法恢复。'),
         actions: [
@@ -216,8 +216,8 @@ class _SingleChatPageState extends State<SingleChatPage> {
   Widget _buildInputBar(BuildContext context, ChatProvider chat) {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Colors.white12)),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
       ),
       child: Row(
         children: [
