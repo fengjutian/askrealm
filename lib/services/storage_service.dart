@@ -8,7 +8,7 @@ class StorageService {
 
   // 默认值
   static const String defaultBaseUrl = 'https://api.deepseek.com';
-  static const String defaultModel = 'deepseek-v4-pro';
+  static const String defaultModel = 'deepseek-v4-flash';
 
   static late SharedPreferences _prefs;
 

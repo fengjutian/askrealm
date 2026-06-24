@@ -156,7 +156,7 @@ class _SettingsPageState extends State<SettingsPage> {
               const SizedBox(height: 8),
               _ConfigField(
                 controller: _modelController,
-                hintText: '如 deepseek-v4-pro / gpt-4o-mini',
+                hintText: '如 deepseek-v4-flash / gpt-4o-mini',
                 onChanged: settings.setModel,
               ),
               const SizedBox(height: 24),
@@ -225,7 +225,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     _ReferenceRow(
                       name: 'DeepSeek',
                       baseUrl: 'https://api.deepseek.com',
-                      model: 'deepseek-v4-pro',
+                      model: 'deepseek-v4-flash',
                     ),
                     const SizedBox(height: 8),
                     _ReferenceRow(
