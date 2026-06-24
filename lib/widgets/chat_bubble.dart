@@ -21,14 +21,14 @@ class ChatBubble extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     if (isUser) {
-      return _buildUserBubble(context, isDark);
+      return _buildUserBubble(isDark);
     } else {
-      return _buildAssistantBubble(context, isDark);
+      return _buildAssistantBubble(isDark);
     }
   }
 
-  /// 用户消息气泡（靠右）— 暖金底色，像导演批注
-  Widget _buildUserBubble(BuildContext context, bool isDark) {
+  /// 用户消息气泡（靠右）
+  Widget _buildUserBubble(bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(left: 60, bottom: 8),
       child: Row(
@@ -70,183 +70,102 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
-  /// 角色消息气泡（靠左）— 卡片底 + 角色色左边条 + 头像金色环
-  Widget _buildAssistantBubble(BuildContext context, bool isDark) {
+  /// 角色消息气泡（靠左）— 基于已验证可工作的结构
+  Widget _buildAssistantBubble(bool isDark) {
     final color = characterColor ?? warmGrey;
 
-    return Padding(
-      padding: const EdgeInsets.only(right: 60, bottom: 8),
+    return Container(
+      margin: const EdgeInsets.only(right: 60, bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? noirCard : const Color(0xFFF8F4EC),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(6),
+          topRight: Radius.circular(18),
+          bottomLeft: Radius.circular(18),
+          bottomRight: Radius.circular(18),
+        ),
+        border: Border(
+          left: BorderSide(color: color.withOpacity(0.55), width: 3),
+          top: BorderSide(color: noirDivider.withOpacity(0.4)),
+          right: BorderSide(color: noirDivider.withOpacity(0.4)),
+          bottom: BorderSide(color: noirDivider.withOpacity(0.4)),
+        ),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 角色头像 — 金色细环
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isDark ? noirCard : Colors.white,
-                border: Border.all(
-                  color: color.withOpacity(0.45),
-                  width: 1.2,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  message.characterEmoji ?? '🤖',
-                  style: const TextStyle(fontSize: 18),
-                ),
+          // 头像
+          Container(
+            width: 36,
+            height: 36,
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isDark ? noirCard : Colors.white,
+              border: Border.all(color: color.withOpacity(0.45), width: 1.2),
+            ),
+            child: Center(
+              child: Text(
+                message.characterEmoji ?? '🤖',
+                style: const TextStyle(fontSize: 18),
               ),
             ),
           ),
-          Flexible(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 角色名标签 — 角色色
-                if (message.characterName != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 4),
-                    child: Text(
-                      message.characterName!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: color,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.3,
-                      ),
+          // 气泡内容
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 角色名
+              if (message.characterName != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    message.characterName!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: color,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                // 气泡内容
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isDark ? noirCard : const Color(0xFFF8F4EC),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(6),
-                      topRight: Radius.circular(18),
-                      bottomLeft: Radius.circular(18),
-                      bottomRight: Radius.circular(18),
-                    ),
-                    border: Border(
-                      left: BorderSide(color: color.withOpacity(0.55), width: 3),
-                      top: BorderSide(color: isDark ? noirDivider.withOpacity(0.4) : const Color(0xFFD5CFC4)),
-                      right: BorderSide(color: isDark ? noirDivider.withOpacity(0.4) : const Color(0xFFD5CFC4)),
-                      bottom: BorderSide(color: isDark ? noirDivider.withOpacity(0.4) : const Color(0xFFD5CFC4)),
-                    ),
-                  ),
-                  child: message.isLoading && message.content.isEmpty
-                      ? _buildLoadingIndicator(isDark, color)
-                      : _buildContent(context, isDark, color),
                 ),
-              ],
-            ),
+              // 状态描述
+              Text(
+                _statusText,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? warmGrey : const Color(0xFF8B8378),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              const SizedBox(height: 4),
+              // 正文或加载动画
+              if (message.isLoading && message.content.isEmpty)
+                _LoadingDots(color: color)
+              else
+                Text(
+                  message.content.isEmpty ? '[空]' : message.content,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: isDark ? warmWhite : Colors.black87,
+                    height: 1.5,
+                  ),
+                ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, bool isDark, Color color) {
-    final theme = Theme.of(context);
-    final textColor = theme.textTheme.bodyLarge?.color
-        ?? (isDark ? warmWhite : const Color(0xFF1A1A1A));
-
-    // 加载完成但内容为空 — 说明 API 返回了空响应
-    if (!message.isLoading && message.content.isEmpty) {
-      return Text(
-        '（暂无回复，请检查 API 配置或重试）',
-        style: TextStyle(
-          fontSize: 13,
-          color: isDark ? warmGrey : const Color(0xFF9B8E7A),
-          fontStyle: FontStyle.italic,
-        ),
-      );
-    }
-
-    if (!message.isLoading) {
-      return Text(
-        message.content,
-        style: TextStyle(
-          fontSize: 15,
-          color: textColor,
-          letterSpacing: 0.3,
-          height: 1.5,
-        ),
-      );
-    }
-
-    // 流式加载中 — 金色闪烁光标
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Flexible(
-          child: Text(
-            message.content,
-            style: TextStyle(
-              fontSize: 15,
-              color: textColor,
-              letterSpacing: 0.3,
-              height: 1.5,
-            ),
-          ),
-        ),
-        const _StreamingCursor(),
-      ],
-    );
-  }
-
-  Widget _buildLoadingIndicator(bool isDark, Color color) {
-    return _LoadingDots(color: color);
+  String get _statusText {
+    final loading = message.isLoading ? '加载中' : '已完成';
+    return '角色:${message.characterId ?? "?"} | 状态:$loading | 长度:${message.content.length}';
   }
 }
 
-/// ─── 流式输出金色闪烁光标 ───────────────────────────────────────────
-class _StreamingCursor extends StatefulWidget {
-  const _StreamingCursor();
-
-  @override
-  State<_StreamingCursor> createState() => _StreamingCursorState();
-}
-
-class _StreamingCursorState extends State<_StreamingCursor>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _controller,
-      child: const Padding(
-        padding: EdgeInsets.only(left: 1),
-        child: Text(
-          '▊',
-          style: TextStyle(fontSize: 14, color: spotlightGold),
-        ),
-      ),
-    );
-  }
-}
-
-/// ─── 加载跳动圆点 — 金色 ────────────────────────────────────────────
+/// ─── 加载跳动圆点 ──────────────────────────────────────────────────
 class _LoadingDots extends StatefulWidget {
   final Color color;
   const _LoadingDots({required this.color});
@@ -283,7 +202,8 @@ class _LoadingDotsState extends State<_LoadingDots>
           animation: _controller,
           builder: (context, child) {
             final phase = (_controller.value * 3 + i) % 1.0;
-            final opacity = 0.25 + 0.75 * (phase < 0.5 ? phase * 2 : (1 - phase) * 2);
+            final opacity =
+                0.25 + 0.75 * (phase < 0.5 ? phase * 2 : (1 - phase) * 2);
             return Container(
               width: 7,
               height: 7,
