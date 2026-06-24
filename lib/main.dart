@@ -39,26 +39,32 @@ class AskRealmApp extends StatelessWidget {
               switch (routeSettings.name) {
                 case '/':
                   return MaterialPageRoute(
+                    settings: routeSettings,
                     builder: (_) => const HomePage(),
                   );
                 case '/select':
                   return MaterialPageRoute(
+                    settings: routeSettings,
                     builder: (_) => const CharacterSelectPage(),
                   );
                 case '/chat/single':
                   return MaterialPageRoute(
+                    settings: routeSettings,
                     builder: (_) => const SingleChatPage(),
                   );
                 case '/chat/group':
                   return MaterialPageRoute(
+                    settings: routeSettings,
                     builder: (_) => const GroupChatPage(),
                   );
                 case '/settings':
                   return MaterialPageRoute(
+                    settings: routeSettings,
                     builder: (_) => const SettingsPage(),
                   );
                 default:
                   return MaterialPageRoute(
+                    settings: routeSettings,
                     builder: (_) => const HomePage(),
                   );
               }
