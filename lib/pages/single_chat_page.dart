@@ -16,17 +16,19 @@ class _SingleChatPageState extends State<SingleChatPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _inputController = TextEditingController();
   int _lastMessageCount = 0;
+  late final ChatProvider _chatProvider;
 
   @override
   void initState() {
     super.initState();
-    _lastMessageCount = context.read<ChatProvider>().messages.length;
-    context.read<ChatProvider>().addListener(_onChatUpdate);
+    _chatProvider = context.read<ChatProvider>();
+    _lastMessageCount = _chatProvider.messages.length;
+    _chatProvider.addListener(_onChatUpdate);
   }
 
   @override
   void dispose() {
-    context.read<ChatProvider>().removeListener(_onChatUpdate);
+    _chatProvider.removeListener(_onChatUpdate);
     _scrollController.dispose();
     _inputController.dispose();
     super.dispose();

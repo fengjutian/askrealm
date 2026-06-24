@@ -47,7 +47,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final model = _modelController.text.trim();
 
     try {
-      final url = Uri.parse('${baseUrl.trimRight('/')}/v1/chat/completions');
+      final url = Uri.parse('${baseUrl.replaceAll(RegExp(r'/+$'), '')}/v1/chat/completions');
       final response = await http
           .post(
             url,
@@ -156,7 +156,7 @@ class _SettingsPageState extends State<SettingsPage> {
               const SizedBox(height: 8),
               _ConfigField(
                 controller: _modelController,
-                hintText: '如 deepseek-chat / gpt-4o-mini',
+                hintText: '如 deepseek-v4-pro / gpt-4o-mini',
                 onChanged: settings.setModel,
               ),
               const SizedBox(height: 24),
@@ -225,7 +225,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     _ReferenceRow(
                       name: 'DeepSeek',
                       baseUrl: 'https://api.deepseek.com',
-                      model: 'deepseek-chat',
+                      model: 'deepseek-v4-pro',
                     ),
                     const SizedBox(height: 8),
                     _ReferenceRow(

@@ -14,7 +14,7 @@ class ApiService {
     required List<Message> history,
     String userMessage = '',
   }) async {
-    final url = Uri.parse('${baseUrl.trimRight('/')}/v1/chat/completions');
+    final url = Uri.parse('${baseUrl.replaceAll(RegExp(r'/+$'), '')}/v1/chat/completions');
 
     // 构建消息列表
     final List<Map<String, String>> messages = [
