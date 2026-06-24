@@ -70,15 +70,17 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
-  /// 角色消息气泡（靠左）— 基于已验证可工作的结构
+  /// 角色消息气泡（靠左）
   Widget _buildAssistantBubble(bool isDark) {
     final color = characterColor ?? warmGrey;
+    final textColor = isDark ? warmWhite : const Color(0xFF1A1A1A);
+    final bubbleBg = isDark ? noirCard : const Color(0xFFF8F4EC);
 
     return Container(
       margin: const EdgeInsets.only(right: 60, bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? noirCard : const Color(0xFFF8F4EC),
+        color: bubbleBg,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(6),
           topRight: Radius.circular(18),
@@ -87,9 +89,6 @@ class ChatBubble extends StatelessWidget {
         ),
         border: Border(
           left: BorderSide(color: color.withOpacity(0.55), width: 3),
-          top: BorderSide(color: noirDivider.withOpacity(0.4)),
-          right: BorderSide(color: noirDivider.withOpacity(0.4)),
-          bottom: BorderSide(color: noirDivider.withOpacity(0.4)),
         ),
       ),
       child: Row(
@@ -106,62 +105,36 @@ class ChatBubble extends StatelessWidget {
               border: Border.all(color: color.withOpacity(0.45), width: 1.2),
             ),
             child: Center(
-              child: Text(
-                message.characterEmoji ?? '🤖',
-                style: const TextStyle(fontSize: 18),
-              ),
+              child: Text(message.characterEmoji ?? '🤖', style: const TextStyle(fontSize: 18)),
             ),
           ),
-          // 气泡内容
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          // 文字
+          Flexible(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 角色名
               if (message.characterName != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 6),
                   child: Text(
                     message.characterName!,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: color,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w700),
                   ),
                 ),
-              // 状态描述
-              Text(
-                _statusText,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: isDark ? warmGrey : const Color(0xFF8B8378),
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-              const SizedBox(height: 4),
-              // 正文或加载动画
               if (message.isLoading && message.content.isEmpty)
                 _LoadingDots(color: color)
               else
                 Text(
-                  message.content.isEmpty ? '[空]' : message.content,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: isDark ? warmWhite : Colors.black87,
-                    height: 1.5,
-                  ),
+                  message.content,
+                  style: TextStyle(fontSize: 15, color: textColor, height: 1.5),
                 ),
             ],
+            ),
           ),
         ],
       ),
     );
-  }
-
-  String get _statusText {
-    final loading = message.isLoading ? '加载中' : '已完成';
-    return '角色:${message.characterId ?? "?"} | 状态:$loading | 长度:${message.content.length}';
   }
 }
 
