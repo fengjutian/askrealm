@@ -21,14 +21,14 @@ class ChatBubble extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     if (isUser) {
-      return _buildUserBubble(isDark);
+      return _buildUserBubble(context, isDark);
     } else {
-      return _buildAssistantBubble(isDark);
+      return _buildAssistantBubble(context, isDark);
     }
   }
 
   /// 用户消息气泡（靠右）— 暖金底色，像导演批注
-  Widget _buildUserBubble(bool isDark) {
+  Widget _buildUserBubble(BuildContext context, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(left: 60, bottom: 8),
       child: Row(
@@ -71,7 +71,7 @@ class ChatBubble extends StatelessWidget {
   }
 
   /// 角色消息气泡（靠左）— 卡片底 + 角色色左边条 + 头像金色环
-  Widget _buildAssistantBubble(bool isDark) {
+  Widget _buildAssistantBubble(BuildContext context, bool isDark) {
     final color = characterColor ?? warmGrey;
 
     return Padding(
@@ -123,7 +123,7 @@ class ChatBubble extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: isDark ? noirCard : Colors.white,
+                    color: isDark ? noirCard : const Color(0xFFF8F4EC),
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(6),
                       topRight: Radius.circular(18),
@@ -132,14 +132,14 @@ class ChatBubble extends StatelessWidget {
                     ),
                     border: Border(
                       left: BorderSide(color: color.withOpacity(0.55), width: 3),
-                      top: BorderSide(color: noirDivider.withOpacity(0.4)),
-                      right: BorderSide(color: noirDivider.withOpacity(0.4)),
-                      bottom: BorderSide(color: noirDivider.withOpacity(0.4)),
+                      top: BorderSide(color: isDark ? noirDivider.withOpacity(0.4) : const Color(0xFFD5CFC4)),
+                      right: BorderSide(color: isDark ? noirDivider.withOpacity(0.4) : const Color(0xFFD5CFC4)),
+                      bottom: BorderSide(color: isDark ? noirDivider.withOpacity(0.4) : const Color(0xFFD5CFC4)),
                     ),
                   ),
                   child: message.isLoading && message.content.isEmpty
                       ? _buildLoadingIndicator(isDark, color)
-                      : _buildContent(isDark, color),
+                      : _buildContent(context, isDark, color),
                 ),
               ],
             ),
@@ -149,8 +149,22 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildContent(bool isDark, Color color) {
-    final textColor = isDark ? warmWhite : const Color(0xFF1A1A1A);
+  Widget _buildContent(BuildContext context, bool isDark, Color color) {
+    final theme = Theme.of(context);
+    final textColor = theme.textTheme.bodyLarge?.color
+        ?? (isDark ? warmWhite : const Color(0xFF1A1A1A));
+
+    // 加载完成但内容为空 — 说明 API 返回了空响应
+    if (!message.isLoading && message.content.isEmpty) {
+      return Text(
+        '（暂无回复，请检查 API 配置或重试）',
+        style: TextStyle(
+          fontSize: 13,
+          color: isDark ? warmGrey : const Color(0xFF9B8E7A),
+          fontStyle: FontStyle.italic,
+        ),
+      );
+    }
 
     if (!message.isLoading) {
       return Text(

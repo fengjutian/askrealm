@@ -41,16 +41,8 @@ class _CharacterSelectPageState extends State<CharacterSelectPage> {
       setState(() {
         if (_selectedIds.contains(character.id)) {
           _selectedIds.remove(character.id);
-        } else if (_selectedIds.length < 4) {
-          _selectedIds.add(character.id);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('最多选 4 个角色'),
-              behavior: SnackBarBehavior.floating,
-              duration: Duration(seconds: 1),
-            ),
-          );
+          _selectedIds.add(character.id);
         }
       });
     } else {
@@ -249,7 +241,7 @@ class _CharacterSelectPageState extends State<CharacterSelectPage> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: Text(
-                '请选择 2~4 个角色加入聊天室\n（已选 ${_selectedIds.length} 个）',
+                '请选择至少 2 个角色加入聊天室\n（已选 ${_selectedIds.length} 个）',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: warmGrey,
                 ),

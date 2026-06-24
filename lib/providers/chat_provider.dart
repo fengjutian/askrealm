@@ -171,6 +171,11 @@ class ChatProvider extends ChangeNotifier {
         _updateMessageContent(msgId, fullText);
       }
 
+      // 兜底：API 返回完全为空（既没有流也没有全量文本）
+      if (buffer.isEmpty && fullText.isEmpty) {
+        _updateMessageContent(msgId, '【提示】模型未返回内容，请检查 API 地址和 Key 是否正确');
+      }
+
       // 确保最终内容刷新
       _finishMessage(msgId);
     } catch (e) {
@@ -235,6 +240,11 @@ class ChatProvider extends ChangeNotifier {
         // 如果 onDelta 从未被触发，用返回的全量文本兜底
         if (buffer.isEmpty && fullText.isNotEmpty) {
           _updateMessageContent(msgId, fullText);
+        }
+
+        // 兜底：API 返回完全为空
+        if (buffer.isEmpty && fullText.isEmpty) {
+          _updateMessageContent(msgId, '【提示】模型未返回内容，请检查 API 地址和 Key 是否正确');
         }
 
         _finishMessage(msgId);

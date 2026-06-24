@@ -140,7 +140,7 @@ class _GroupChatPageState extends State<GroupChatPage> {
             title: Row(
               children: [
                 // 成员小头像 — 各自角色色细环
-                ...chat.roomCharacters.take(4).map((c) => Padding(
+                ...chat.roomCharacters.map((c) => Padding(
                       padding: const EdgeInsets.only(right: 2),
                       child: Container(
                         width: 28,

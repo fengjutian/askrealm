@@ -136,7 +136,7 @@ class _HomePageState extends State<HomePage> {
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 48),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 40),
 
@@ -200,11 +200,9 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 48),
 
-            // ── 快速入口 — 电影票根风格 ──
-            Wrap(
-              spacing: 20,
-              runSpacing: 16,
-              alignment: WrapAlignment.center,
+            // ── 快速入口 ──
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _TicketCard(
                   icon: Icons.person_outline,
@@ -213,6 +211,7 @@ class _HomePageState extends State<HomePage> {
                   isDark: isDark,
                   onTap: () => Navigator.pushNamed(context, '/select', arguments: false),
                 ),
+                const SizedBox(width: 20),
                 _TicketCard(
                   icon: Icons.groups_outlined,
                   label: '多人聊天室',
@@ -351,7 +350,7 @@ class _ActivityBarButton extends StatelessWidget {
 }
 
 /// ─── 票根风格快速入口卡片 ──────────────────────────────────────────
-class _TicketCard extends StatelessWidget {
+class _TicketCard extends StatefulWidget {
   final IconData icon;
   final String label;
   final String subtitle;
@@ -367,55 +366,97 @@ class _TicketCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final cardBg = isDark ? noirCard : const Color(0xFFEDE6DA);
-    final borderColor = isDark ? noirDivider : const Color(0xFFDDD5C8);
+  State<_TicketCard> createState() => _TicketCardState();
+}
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 220,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: cardBg,
-          borderRadius: BorderRadius.circular(12),
-          border: Border(
-            left: const BorderSide(color: spotlightGold, width: 3),
-            top: BorderSide(color: borderColor),
-            right: BorderSide(color: borderColor),
-            bottom: BorderSide(color: borderColor),
+class _TicketCardState extends State<_TicketCard> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final cardBg = widget.isDark ? noirCard : const Color(0xFFFFFFFF);
+    final borderColor = _hovered
+        ? spotlightGold.withOpacity(0.7)
+        : spotlightGold.withOpacity(0.22);
+    final glowOpacity = _hovered ? 0.14 : 0.05;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeOutCubic,
+          width: 220,
+          padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: borderColor, width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: spotlightGold.withOpacity(glowOpacity),
+                blurRadius: 32,
+                spreadRadius: _hovered ? 4 : 0,
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.45),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.12),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 36, color: spotlightGold),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-                color: isDark ? warmWhite : const Color(0xFF1A1A1A),
-                letterSpacing: 0.8,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── 图标 + 微光晕 ──
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      spotlightGold.withOpacity(_hovered ? 0.22 : 0.10),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.75],
+                  ),
+                ),
+                child: Icon(
+                  widget.icon,
+                  size: 32,
+                  color: _hovered
+                      ? spotlightGold
+                      : spotlightGold.withOpacity(0.75),
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(
-                color: isDark ? warmGrey : const Color(0xFF8B8378),
-                fontSize: 12,
+              const SizedBox(height: 18),
+              // ── 标题 ──
+              Text(
+                widget.label,
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: widget.isDark ? warmWhite : const Color(0xFF1A1A1A),
+                  letterSpacing: 0.5,
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              const SizedBox(height: 6),
+              // ── 副标题 ──
+              Text(
+                widget.subtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: widget.isDark ? warmGrey : const Color(0xFF8B8378),
+                  letterSpacing: 0.2,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
