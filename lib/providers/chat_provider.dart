@@ -26,10 +26,12 @@ class ChatProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   Set<String> get loadingCharacterIds => _loadingCharacterIds;
 
-  /// 生成唯一 ID（原子操作）
+  static int _idCounter = 0;
+
+  /// 生成唯一 ID（自增计数器保证同一毫秒内也不重复）
   static String _genId() {
-    final now = DateTime.now();
-    return 'msg_${now.millisecondsSinceEpoch}_${now.microsecondsSinceEpoch}';
+    _idCounter++;
+    return 'msg_${DateTime.now().millisecondsSinceEpoch}_$_idCounter';
   }
 
   /// 是否有对话内容
