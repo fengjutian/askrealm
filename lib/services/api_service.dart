@@ -24,7 +24,9 @@ class ApiService {
       // 将历史消息加入
       ...history.map((m) => {
             'role': m.role == 'user' ? 'user' : 'assistant',
-            'content': m.content,
+            'content': m.role == 'assistant' && m.characterName != null
+                ? '【${m.characterName}】：${m.content}'
+                : m.content,
           }),
       // 当前用户消息
       if (userMessage.isNotEmpty) {'role': 'user', 'content': userMessage},
@@ -76,7 +78,9 @@ class ApiService {
       {'role': 'system', 'content': systemPrompt},
       ...history.map((m) => {
             'role': m.role == 'user' ? 'user' : 'assistant',
-            'content': m.content,
+            'content': m.role == 'assistant' && m.characterName != null
+                ? '【${m.characterName}】：${m.content}'
+                : m.content,
           }),
       if (userMessage.isNotEmpty) {'role': 'user', 'content': userMessage},
     ];

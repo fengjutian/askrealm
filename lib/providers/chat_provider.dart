@@ -216,16 +216,25 @@ class ChatProvider extends ChangeNotifier {
         final buffer = StringBuffer();
         var lastNotify = DateTime.now();
 
+        final fullPrompt = '${character.systemPrompt}\n\n'
+            '[系统指令] 如果当前话题与你完全无关，或你确实没有想说的，'
+            '请只回复 [SKIP]（仅这6个字符，不要加任何其他内容）。';
+
         final fullText = await ApiService.chatStream(
           baseUrl: StorageService.baseUrl,
           apiKey: StorageService.apiKey ?? '',
           model: StorageService.model,
-          systemPrompt: character.systemPrompt,
+          systemPrompt: fullPrompt,
           history: _buildHistory(),
           userMessage: '',
           onDelta: (delta) {
             if (_isStale(clearAtStart)) return;
             buffer.write(delta);
+            final current = buffer.toString().trim();
+            // Suppress UI while the buffer is a prefix of [SKIP]
+            if (current.isNotEmpty && '[SKIP]'.startsWith(current)) {
+              return;
+            }
             _updateMessageContent(msgId, buffer.toString());
             final now = DateTime.now();
             if (now.difference(lastNotify).inMilliseconds >= 50) {
@@ -237,14 +246,20 @@ class ChatProvider extends ChangeNotifier {
 
         if (_isStale(clearAtStart)) break;
 
+        final responseText = buffer.isEmpty ? fullText : buffer.toString();
+
+        // 角色选择跳过：回复为 [SKIP] 或完全为空
+        if (responseText.trim().toUpperCase() == '[SKIP]' ||
+            responseText.trim().isEmpty) {
+          _messages.removeWhere((m) => m.id == msgId);
+          _loadingCharacterIds.remove(character.id);
+          notifyListeners();
+          continue;
+        }
+
         // 如果 onDelta 从未被触发，用返回的全量文本兜底
         if (buffer.isEmpty && fullText.isNotEmpty) {
           _updateMessageContent(msgId, fullText);
-        }
-
-        // 兜底：API 返回完全为空
-        if (buffer.isEmpty && fullText.isEmpty) {
-          _updateMessageContent(msgId, '【提示】模型未返回内容，请检查 API 地址和 Key 是否正确');
         }
 
         _finishMessage(msgId);
