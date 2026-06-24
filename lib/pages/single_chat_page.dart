@@ -36,7 +36,7 @@ class _SingleChatPageState extends State<SingleChatPage> {
 
   void _onChatUpdate() {
     final chat = context.read<ChatProvider>();
-    if (chat.messages.length > _lastMessageCount) {
+    if (chat.messages.length > _lastMessageCount || chat.isLoading) {
       _lastMessageCount = chat.messages.length;
       _scrollToBottom();
     }

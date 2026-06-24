@@ -51,6 +51,20 @@ class ChatProvider extends ChangeNotifier {
   /// 检查请求是否已因清空而过时
   bool _isStale(int clearCountAtStart) => _clearCount != clearCountAtStart;
 
+  /// 根据消息 ID 更新内容（用于流式追加）
+  void _updateMessageContent(String id, String newContent) {
+    final index = _messages.indexWhere((m) => m.id == id);
+    if (index == -1) return;
+    _messages[index] = _messages[index].copyWith(content: newContent, isLoading: true);
+  }
+
+  /// 将消息标记为加载完成
+  void _finishMessage(String id) {
+    final index = _messages.indexWhere((m) => m.id == id);
+    if (index == -1) return;
+    _messages[index] = _messages[index].copyWith(isLoading: false);
+  }
+
   // --- 初始化单人模式 ---
   void startSingleChat(Character character) {
     _mode = ChatMode.single;
@@ -100,54 +114,61 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  // --- 单人回复 ---
+  // --- 单人回复（流式） ---
   Future<void> _singleReply() async {
     if (_currentCharacter == null) return;
 
     final clearAtStart = _clearCount;
+    final char = _currentCharacter!;
+
+    // 先放一个空的占位消息
+    final msgId = _genId();
+    _messages.add(Message(
+      id: msgId,
+      role: 'assistant',
+      characterId: char.id,
+      characterName: char.name,
+      characterEmoji: char.emoji,
+      content: '',
+      timestamp: DateTime.now(),
+      isLoading: true,
+    ));
     _isLoading = true;
     notifyListeners();
 
     try {
-      final reply = await ApiService.chat(
+      final buffer = StringBuffer();
+      await ApiService.chatStream(
         baseUrl: StorageService.baseUrl,
         apiKey: StorageService.apiKey ?? '',
         model: StorageService.model,
-        systemPrompt: _currentCharacter!.systemPrompt,
+        systemPrompt: char.systemPrompt,
         history: _buildHistory(),
         userMessage: '',
+        onDelta: (delta) {
+          if (_isStale(clearAtStart)) return;
+          buffer.write(delta);
+          _updateMessageContent(msgId, buffer.toString());
+          notifyListeners();
+        },
       );
 
       if (_isStale(clearAtStart)) return;
 
-      _messages.add(Message(
-        id: _genId(),
-        role: 'assistant',
-        characterId: _currentCharacter!.id,
-        characterName: _currentCharacter!.name,
-        characterEmoji: _currentCharacter!.emoji,
-        content: reply,
-        timestamp: DateTime.now(),
-      ));
+      // 标记完成
+      _finishMessage(msgId);
     } catch (e) {
       if (_isStale(clearAtStart)) return;
 
-      _messages.add(Message(
-        id: _genId(),
-        role: 'assistant',
-        characterId: _currentCharacter!.id,
-        characterName: _currentCharacter!.name,
-        characterEmoji: _currentCharacter!.emoji,
-        content: '【出错了】${_sanitizeError(e)}',
-        timestamp: DateTime.now(),
-      ));
+      _updateMessageContent(msgId, '【出错了】${_sanitizeError(e)}');
+      _finishMessage(msgId);
     }
 
     _isLoading = false;
     notifyListeners();
   }
 
-  // --- 多人依次回复 ---
+  // --- 多人依次回复（流式） ---
   Future<void> _groupReplies() async {
     final clearAtStart = _clearCount;
     _isLoading = true;
@@ -155,42 +176,46 @@ class ChatProvider extends ChangeNotifier {
     for (final character in _roomCharacters) {
       if (_isStale(clearAtStart)) break;
 
+      // 该角色的占位消息
+      final msgId = _genId();
+      _messages.add(Message(
+        id: msgId,
+        role: 'assistant',
+        characterId: character.id,
+        characterName: character.name,
+        characterEmoji: character.emoji,
+        content: '',
+        timestamp: DateTime.now(),
+        isLoading: true,
+      ));
       _loadingCharacterIds.add(character.id);
       notifyListeners();
 
       try {
-        final reply = await ApiService.chat(
+        final buffer = StringBuffer();
+        await ApiService.chatStream(
           baseUrl: StorageService.baseUrl,
           apiKey: StorageService.apiKey ?? '',
           model: StorageService.model,
           systemPrompt: character.systemPrompt,
           history: _buildHistory(),
           userMessage: '',
+          onDelta: (delta) {
+            if (_isStale(clearAtStart)) return;
+            buffer.write(delta);
+            _updateMessageContent(msgId, buffer.toString());
+            notifyListeners();
+          },
         );
 
         if (_isStale(clearAtStart)) break;
 
-        _messages.add(Message(
-          id: _genId(),
-          role: 'assistant',
-          characterId: character.id,
-          characterName: character.name,
-          characterEmoji: character.emoji,
-          content: reply,
-          timestamp: DateTime.now(),
-        ));
+        _finishMessage(msgId);
       } catch (e) {
         if (_isStale(clearAtStart)) break;
 
-        _messages.add(Message(
-          id: _genId(),
-          role: 'assistant',
-          characterId: character.id,
-          characterName: character.name,
-          characterEmoji: character.emoji,
-          content: '【出错了】${_sanitizeError(e)}',
-          timestamp: DateTime.now(),
-        ));
+        _updateMessageContent(msgId, '【出错了】${_sanitizeError(e)}');
+        _finishMessage(msgId);
       }
 
       _loadingCharacterIds.remove(character.id);

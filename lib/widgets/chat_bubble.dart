@@ -115,7 +115,7 @@ class ChatBubble extends StatelessWidget {
                       ),
                     ),
                   ),
-                  child: message.isLoading
+                  child: message.isLoading && message.content.isEmpty
                       ? _buildLoadingIndicator()
                       : Text(
                           message.content,
