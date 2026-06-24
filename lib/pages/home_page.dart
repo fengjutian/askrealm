@@ -368,7 +368,7 @@ class _TicketCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardBg = isDark ? noirCard : Colors.white;
+    final cardBg = isDark ? noirCard : const Color(0xFFEDE6DA);
     final borderColor = isDark ? noirDivider : const Color(0xFFDDD5C8);
 
     return GestureDetector(

@@ -98,6 +98,12 @@ ThemeData buildLightTheme() {
         color: Color(0xFF1A1A1A),
         letterSpacing: 0.5,
       ),
+      headlineSmall: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF1A1A1A),
+        letterSpacing: 0.3,
+      ),
       titleLarge: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w600,
@@ -119,9 +125,16 @@ ThemeData buildLightTheme() {
       bodyLarge: TextStyle(color: Color(0xFF1A1A1A), letterSpacing: 0.3),
       bodyMedium: TextStyle(color: Color(0xFF333333), letterSpacing: 0.3),
       bodySmall: TextStyle(color: Color(0xFF666666), letterSpacing: 0.2),
+      labelLarge: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF1A1A1A),
+        letterSpacing: 0.3,
+      ),
     ),
     dialogTheme: const DialogThemeData(
       backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
@@ -165,6 +178,12 @@ ThemeData buildDarkTheme() {
         color: warmWhite,
         letterSpacing: 1.5,
       ),
+      headlineSmall: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+        color: warmWhite,
+        letterSpacing: 0.3,
+      ),
       titleLarge: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w600,
@@ -186,9 +205,28 @@ ThemeData buildDarkTheme() {
       bodyLarge: TextStyle(color: warmWhite, letterSpacing: 0.3),
       bodyMedium: TextStyle(color: warmWhite70, letterSpacing: 0.3),
       bodySmall: TextStyle(color: warmWhite54, letterSpacing: 0.2),
+      labelLarge: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: spotlightGold,
+        letterSpacing: 0.3,
+      ),
     ),
     dialogTheme: const DialogThemeData(
       backgroundColor: noirCard,
+      surfaceTintColor: Colors.transparent,
+      titleTextStyle: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: warmWhite,
+        letterSpacing: 0.3,
+      ),
+      contentTextStyle: TextStyle(
+        fontSize: 15,
+        color: warmWhite70,
+        letterSpacing: 0.3,
+        height: 1.5,
+      ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,

@@ -86,7 +86,7 @@ class _CharacterSelectPageState extends State<CharacterSelectPage> {
               Text(
                 character.from,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: warmGrey,
+                  color: warmWhite54,
                 ),
               ),
               const SizedBox(height: 12),
@@ -120,7 +120,7 @@ class _CharacterSelectPageState extends State<CharacterSelectPage> {
               Text(
                 character.description,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: warmGrey,
+                  color: warmWhite70,
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
