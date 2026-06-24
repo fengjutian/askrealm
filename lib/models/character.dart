@@ -7,6 +7,7 @@ class Character {
   final String from; // 出自作品
   final String emoji; // 头像 Emoji
   final String description; // 性格描述
+  final List<String> tags; // 角色标签（如"反派""刑警""大佬"）
   final String systemPrompt; // 角色人设指令（给 AI 的 System Prompt）
   final String sampleLine; // 代表性台词
   final Color labelColor; // 聊天室中角色标签颜色
@@ -19,6 +20,7 @@ class Character {
     required this.description,
     required this.systemPrompt,
     required this.sampleLine,
+    this.tags = const [],
     this.labelColor = Colors.grey,
   });
 }

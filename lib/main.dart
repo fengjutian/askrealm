@@ -35,8 +35,8 @@ class AskRealmApp extends StatelessWidget {
             darkTheme: buildDarkTheme(),
             themeMode: settings.themeMode,
             initialRoute: '/',
-            onGenerateRoute: (settings) {
-              switch (settings.name) {
+            onGenerateRoute: (routeSettings) {
+              switch (routeSettings.name) {
                 case '/':
                   return MaterialPageRoute(
                     builder: (_) => const HomePage(),

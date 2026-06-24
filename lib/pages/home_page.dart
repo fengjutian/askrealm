@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../data/characters.dart';
+import '../models/character.dart';
+import '../providers/chat_provider.dart';
 import '../providers/settings_provider.dart';
+import '../services/storage_service.dart';
 
 /// 首页 — VS Code 风格左右布局
 class HomePage extends StatefulWidget {
@@ -199,6 +203,9 @@ class _HomePageState extends State<HomePage> {
               },
             ),
 
+            // 已收藏的多人组合
+            _SavedCombosSection(),
+
             const SizedBox(height: 40),
           ],
         ),
@@ -323,6 +330,114 @@ class _QuickEntryCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// 首页已收藏的多人组合区域
+class _SavedCombosSection extends StatefulWidget {
+  @override
+  State<_SavedCombosSection> createState() => _SavedCombosSectionState();
+}
+
+class _SavedCombosSectionState extends State<_SavedCombosSection> {
+  List<List<String>> _combos = [];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadCombos();
+  }
+
+  void _loadCombos() {
+    _combos = StorageService.favoriteCombos;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_combos.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+
+    return Column(
+      children: [
+        const SizedBox(height: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.bookmark, size: 16, color: Colors.grey[400]),
+            const SizedBox(width: 6),
+            Text(
+              '常用组合',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.grey[400],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          alignment: WrapAlignment.center,
+          children: _combos.map((combo) {
+            final emojis = combo.map((id) {
+              return AppCharacters.getById(id)?.emoji ?? '';
+            }).join(' ');
+            final names = combo.map((id) {
+              return AppCharacters.getById(id)?.name ?? id;
+            }).join('、');
+            final chars = combo
+                .map((id) => AppCharacters.getById(id))
+                .whereType<Character>()
+                .toList();
+
+            return Tooltip(
+              message: names,
+              child: GestureDetector(
+                onTap: () {
+                  if (chars.length < 2) return;
+                  context.read<ChatProvider>().startGroupChat(chars);
+                  Navigator.pushReplacementNamed(context, '/chat/group');
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: theme.dividerColor),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(emojis, style: const TextStyle(fontSize: 18)),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${combo.length}人',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[500],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(Icons.arrow_forward_ios, size: 10, color: Colors.grey[400]),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 }

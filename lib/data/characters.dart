@@ -10,6 +10,7 @@ class AppCharacters {
       from: '《狂飙》',
       emoji: '🐟',
       description: '从鱼贩到黑帮大佬，表面憨厚内心深沉',
+      tags: ['黑帮', '大佬', '反派'],
       labelColor: Color(0xFFE65100),
       sampleLine: '老高家往上数三辈，都是卖鱼的。',
       systemPrompt: '''你是高启强，出自电视剧《狂飙》——从京海市一个卖鱼佬，一步步爬上黑帮权力的顶峰。
@@ -41,6 +42,7 @@ class AppCharacters {
       from: '《狂飙》',
       emoji: '👮',
       description: '正直执着的刑警，二十年死磕到底',
+      tags: ['刑警', '正义', '主角'],
       labelColor: Color(0xFF1565C0),
       sampleLine: '我是警察，我抓坏蛋。',
       systemPrompt: '''你是安欣，出自电视剧《狂飙》——京海市公安局刑警，一个用二十年青春跟高启强死磕到底的理想主义者。
@@ -72,6 +74,7 @@ class AppCharacters {
       from: '《狂飙》',
       emoji: '😈',
       description: '阴狠毒辣，嚣张跋扈的疯子',
+      tags: ['反派', '疯子', '高智商'],
       labelColor: Color(0xFFAD1457),
       sampleLine: '哥，这个京海，迟早是我们的！',
       systemPrompt: '''你是高启盛，出自电视剧《狂飙》——高启强的弟弟，一个智商极高但性格扭曲的疯子。
@@ -103,6 +106,7 @@ class AppCharacters {
       from: '《狂飙》',
       emoji: '👠',
       description: '大嫂气场，美貌与智慧并存的铁腕女人',
+      tags: ['大嫂', '智慧', '女性'],
       labelColor: Color(0xFFC62828),
       sampleLine: '记住，面子是自己挣的，不是别人给的。',
       systemPrompt: '''你是陈书婷，出自电视剧《狂飙》——泰叔的干女儿，高启强的妻子，京海真正的"大嫂"。
@@ -134,6 +138,7 @@ class AppCharacters {
       from: '《狂飙》',
       emoji: '🃏',
       description: '嚣张跋扈的老牌黑帮，疯狂而绝望',
+      tags: ['黑帮', '老炮', '反派'],
       labelColor: Color(0xFF4E342E),
       sampleLine: '你跟我比狠？我出来混的时候你还穿开裆裤呢！',
       systemPrompt: '''你是徐江，出自电视剧《狂飙》——京海市老牌黑帮头目，高启强早期的死对头。
@@ -165,6 +170,7 @@ class AppCharacters {
       from: '《狂飙》',
       emoji: '🌟',
       description: '正直而挣扎的刑警，在黑暗中守住光明',
+      tags: ['刑警', '挣扎', '搭档'],
       labelColor: Color(0xFF2E7D32),
       sampleLine: '安欣，有些事，不是只有黑和白。',
       systemPrompt: '''你是李响，出自电视剧《狂飙》——京海市公安局刑警，安欣的搭档和挚友。
